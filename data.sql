@@ -198,4 +198,41 @@ GO
 -- Hash chuẩn BCrypt của mật khẩu: 123456@Aa
 UPDATE NguoiDung 
 SET MatKhauMaHoa = '$2a$11$9qY1H5Uu27y5lS.k2w1zCeN9L0sF2zH/rG6XQ1j2g8W0V3k7B0s3K'
-WHERE VaiTro IN ('QuanTri', 'CanBo', 'ThiSinh');
+WHERE VaiTro IN ('QuanTri', 'CanBo');
+USE QuanLyTuyenSinhTrucTuyen;
+GO
+
+SELECT MaNguoiDung, TenDangNhap, SoCCCD, HoTen, VaiTro, TrangThaiHoatDong, MatKhauMaHoa 
+FROM NguoiDung;
+GO
+
+USE QuanLyTuyenSinhTrucTuyen;
+GO
+
+-- 1. Nếu đã có tài khoản admin, cập nhật lại mật khẩu là 123456 và bật TrangThaiHoatDong = 1
+UPDATE NguoiDung
+SET MatKhauMaHoa = '$2a$11$eE61K7Qj4Ww73q9uL8qCSuqj8G3r2H7kO0E8QpT1gN5z9nC9qU8q2',
+    TrangThaiHoatDong = 1
+WHERE TenDangNhap = 'admin';
+
+-- 2. Nếu chưa hề có tài khoản admin nào thì chèn mới vào luôn
+IF NOT EXISTS (SELECT 1 FROM NguoiDung WHERE TenDangNhap = 'admin')
+BEGIN
+    INSERT INTO NguoiDung (TenDangNhap, MatKhauMaHoa, HoTen, Email, SoDienThoai, SoCCCD, VaiTro, TrangThaiHoatDong, NgayTao)
+    VALUES ('admin', '$2a$11$eE61K7Qj4Ww73q9uL8qCSuqj8G3r2H7kO0E8QpT1gN5z9nC9qU8q2', N'Quản Trị Viên', 'admin@tuyensinh.edu.vn', '0988888888', '001205000001', 'QuanTri', 1, GETDATE());
+END
+GO
+
+USE QuanLyTuyenSinhTrucTuyen;
+GO
+
+-- 1. Đảm bảo độ dài cột MatKhauMaHoa đủ chứa mã hash (tối thiểu 100 hoặc 255)
+ALTER TABLE NguoiDung ALTER COLUMN MatKhauMaHoa NVARCHAR(255) NOT NULL;
+GO
+
+-- 2. Tạm thời đặt mật khẩu trực tiếp thành chuỗi '123456' để kiểm tra cơ chế fallback
+UPDATE NguoiDung
+SET MatKhauMaHoa = '123456',
+    TrangThaiHoatDong = 1
+WHERE TenDangNhap IN ('admin', 'canbo_tuyensinh');
+GO
