@@ -1,46 +1,262 @@
 ﻿<!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - BTL_QLTuyenSinh</title>
+    <title>@ViewData["Title"] - Tuyển Sinh Trực Tuyến 2026</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/BTL_QLTuyenSinh.styles.css" asp-append-version="true" />
-</head>
-<body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">BTL_QLTuyenSinh</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </nav>
-    </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
-    </div>
+    <style>
+        /* CSS CHO NAVBAR ADMIN & CÁN BỘ */
+        .navbar-admin-dark {
+            background-color: #1e293b !important;
+            padding-top: 10px;
+            padding-bottom: 0px;
+            border-bottom: 1px solid #0f172a;
+        }
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2026 - BTL_QLTuyenSinh - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-        </div>
-    </footer>
+            .navbar-admin-dark .nav-link {
+                color: #94a3b8 !important;
+                font-size: 13.5px;
+                font-weight: 500;
+                padding: 10px 14px 14px 14px !important;
+                transition: color 0.15s ease;
+                position: relative;
+            }
+
+                .navbar-admin-dark .nav-link:hover {
+                    color: #f8fafc !important;
+                }
+
+                .navbar-admin-dark .nav-link.active-admin {
+                    color: #38bdf8 !important;
+                    font-weight: 700;
+                }
+
+                    .navbar-admin-dark .nav-link.active-admin::after {
+                        content: "";
+                        position: absolute;
+                        left: 0;
+                        right: 0;
+                        bottom: 0;
+                        height: 3px;
+                        background-color: #0284c7;
+                    }
+
+            .navbar-admin-dark .admin-user-btn {
+                color: #ffffff !important;
+                font-size: 13px;
+                font-weight: 600;
+                text-decoration: none;
+                padding-bottom: 12px;
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+            }
+
+        /* CSS CHO NAVBAR THÍ SINH & KHÁCH VÃNG LAI */
+        .navbar-client-light {
+            background-color: #ffffff !important;
+            padding: 14px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+            .navbar-client-light .nav-link {
+                font-size: 13.5px;
+                font-weight: 600;
+                color: #64748b;
+            }
+
+                .navbar-client-light .nav-link.active-client {
+                    color: #1d61d8 !important;
+                    border-bottom: 2.5px solid #1d61d8;
+                    padding-bottom: 4px;
+                }
+    </style>
+</head>
+<body class="d-flex flex-column min-vh-100 bg-light">
+
+    @{
+        bool isAuthenticated = User.Identity != null && User.Identity.IsAuthenticated;
+        bool isAdmin = User.IsInRole("QuanTri");
+        bool isCanBo = User.IsInRole("CanBo");
+        bool isStaff = isAdmin || isCanBo;
+
+        string currentCtrl = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+        string currentAct = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
+    }
+
+    @if (isStaff)
+    {
+        <!-- 1. NAVBAR DÀNH CHO ADMIN & CÁN BỘ (NỀN TỐI) -->
+        <header class="navbar-admin-dark shadow-sm">
+            <div class="container-fluid px-lg-5">
+                <nav class="navbar navbar-expand-lg p-0">
+                    <a class="navbar-brand d-flex align-items-center gap-3 text-white fw-bold my-auto pb-2" asp-area="" asp-controller="Home" asp-action="Index">
+                        <div style="width: 34px; height: 34px; background-color: #2563eb; color: #ffffff; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 800;">
+                            TS
+                        </div>
+                        <span style="font-size: 14.5px; letter-spacing: 0.5px;">QUẢN TRỊ TUYỂN SINH - BTL_QLTuyenSinh</span>
+                    </a>
+
+                    <button class="navbar-toggler navbar-dark border-0" type="button" data-bs-toggle="collapse" data-bs-target="#adminNav">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+
+                    <div class="collapse navbar-collapse" id="adminNav">
+                        <ul class="navbar-nav ms-auto align-items-center gap-2">
+                            <!-- DANH MỤC NGÀNH / NGÀNH HỌC -->
+                            <li class="nav-item">
+                                <a class="nav-link @(currentCtrl.Contains("NganhHoc") ? "active-admin" : "")"
+                                   asp-area="Admin" asp-controller="NganhHoc" asp-action="Index">
+                                    @(isCanBo ? "Danh mục Ngành" : "Ngành học")
+                                </a>
+                            </li>
+
+                            <!-- DUYỆT HỒ SƠ -->
+                            <li class="nav-item">
+                                <a class="nav-link @(currentCtrl.Contains("HoSo") ? "active-admin" : "")"
+                                   asp-area="Admin" asp-controller="HoSoTuyenSinh" asp-action="Index">
+                                    Duyệt hồ sơ
+                                </a>
+                            </li>
+
+                            <!-- QUẢN LÝ ĐIỂM THI -->
+                            <li class="nav-item">
+                                <a class="nav-link @(currentCtrl.Contains("DiemThi") ? "active-admin" : "")"
+                                   asp-area="Admin" asp-controller="DiemThi" asp-action="Index">
+                                    Quản lý Điểm thi
+                                </a>
+                            </li>
+
+                            @if (isAdmin)
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link @(currentCtrl.Equals("XetTuyen", StringComparison.OrdinalIgnoreCase) ? "active-admin" : "")"
+                                       asp-area="Admin" asp-controller="XetTuyen" asp-action="Index">
+                                        Xét tuyển
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link @(currentCtrl.Equals("NguoiDung", StringComparison.OrdinalIgnoreCase) ? "active-admin" : "")"
+                                       asp-area="Admin" asp-controller="NguoiDung" asp-action="Index">
+                                        Tài khoản & Quyền
+                                    </a>
+                                </li>
+                            }
+
+                            <!-- DROPDOWN TÀI KHOẢN CÁN BỘ / ADMIN -->
+                            <li class="nav-item dropdown ms-2">
+                                <a class="admin-user-btn dropdown-toggle" href="#" id="staffMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    @(isAdmin ? "Admin" : "Cán bộ") ▼
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="staffMenu">
+                                    <li class="px-3 py-2 small text-muted border-bottom">
+                                        👤 <strong>@User.Identity?.Name</strong>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item py-2" asp-area="" asp-controller="Home" asp-action="Index">Về trang chủ</a>
+                                    </li>
+                                    <li>
+                                        <form asp-area="" asp-controller="Account" asp-action="Logout" method="post" class="m-0 p-1">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="dropdown-item text-danger fw-semibold">Đăng xuất</button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                </nav>
+            </div>
+        </header>
+    }
+    else
+    {
+        <!-- 2. NAVBAR DÀNH CHO THÍ SINH & KHÁCH (NỀN TRẮNG) -->
+        <header class="navbar-client-light shadow-sm">
+            <div class="container-fluid px-lg-5">
+                <nav class="navbar navbar-expand-lg navbar-light p-0">
+                    <a class="navbar-brand d-flex align-items-center gap-3 fw-bold text-dark" asp-area="" asp-controller="Home" asp-action="Index">
+                        <div style="width: 38px; height: 38px; background-color: #153e90; color: #ffffff; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 800;">
+                            TS
+                        </div>
+                        <span style="font-size: 15.5px; letter-spacing: 0.4px;">HỆ THỐNG TUYỂN SINH TRỰC TUYẾN</span>
+                    </a>
+
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#clientNav">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+
+                    <div class="collapse navbar-collapse" id="clientNav">
+                        <ul class="navbar-nav ms-auto align-items-center gap-4">
+                            @{
+                                bool isHome = currentCtrl.Equals("Home", StringComparison.OrdinalIgnoreCase) && currentAct.Equals("Index", StringComparison.OrdinalIgnoreCase);
+                                bool isDeAn = currentAct.Equals("DeAnTuyenSinh", StringComparison.OrdinalIgnoreCase);
+                                bool isHoSo = currentCtrl.Equals("ThiSinh", StringComparison.OrdinalIgnoreCase) && currentAct.Equals("HoSo", StringComparison.OrdinalIgnoreCase);
+                                bool isNguyenVong = currentCtrl.Equals("ThiSinh", StringComparison.OrdinalIgnoreCase) && currentAct.Equals("NguyenVong", StringComparison.OrdinalIgnoreCase);
+                            }
+
+                            <li class="nav-item">
+                                <a class="nav-link @(isHome ? "active-client" : "")" asp-area="" asp-controller="Home" asp-action="Index">Trang chủ</a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a class="nav-link @(isDeAn ? "active-client" : "")" asp-area="" asp-controller="Home" asp-action="DeAnTuyenSinh">Đề án tuyển sinh</a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index" fragment="danh-sach-nganh">Tra cứu kết quả</a>
+                            </li>
+
+                            @if (isAuthenticated)
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link @(isHoSo ? "active-client" : "")" asp-area="" asp-controller="ThiSinh" asp-action="HoSo">Hồ sơ của tôi</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link @(isNguyenVong ? "active-client" : "")" asp-area="" asp-controller="ThiSinh" asp-action="NguyenVong">Đăng ký nguyện vọng</a>
+                                </li>
+
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle text-dark fw-bold" href="#" id="thiSinhMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        👤 @User.Identity?.Name
+                                    </a>
+                                    <ul class="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="thiSinhMenu">
+                                        <li>
+                                            <form asp-area="" asp-controller="Account" asp-action="Logout" method="post" class="m-0 p-1">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="dropdown-item text-danger fw-semibold">Đăng xuất</button>
+                                            </form>
+                                        </li>
+                                    </ul>
+                                </li>
+                            }
+                            else
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link text-secondary" asp-area="" asp-controller="Account" asp-action="Login">Đăng ký nguyện vọng</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-primary fw-bold" asp-area="" asp-controller="Account" asp-action="Register">Đăng ký</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="btn btn-outline-primary btn-sm px-3 fw-semibold" asp-area="" asp-controller="Account" asp-action="Login">Đăng nhập</a>
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                </nav>
+            </div>
+        </header>
+    }
+
+    <!-- NỘI DUNG TỪNG VIEW CON ĐƯỢC CHÈN TẠI ĐÂY -->
+    <main role="main" class="flex-grow-1">
+        @RenderBody()
+    </main>
+
+    <!-- SCRIPTS HỆ THỐNG -->
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>

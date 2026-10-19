@@ -195,3 +195,7 @@ INSERT INTO NguyenVong (MaHoSoId, MaNganhId, ThuTuNguyenVong, KhoiXetTuyen, Tong
 INSERT INTO MinhChungHoSo (MaHoSoId, LoaiMinhChung, TenTep, DuongDanTep, DungLuongKB) VALUES
 (1, N'CCCD', N'cccd_mat_truoc_sau.pdf', N'/uploads/minhchung/cccd_mat_truoc_sau.pdf', 1024);
 GO
+-- Hash chuẩn BCrypt của mật khẩu: 123456@Aa
+UPDATE NguoiDung 
+SET MatKhauMaHoa = '$2a$11$9qY1H5Uu27y5lS.k2w1zCeN9L0sF2zH/rG6XQ1j2g8W0V3k7B0s3K'
+WHERE VaiTro IN ('QuanTri', 'CanBo', 'ThiSinh');

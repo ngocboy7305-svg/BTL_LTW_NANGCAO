@@ -1,0 +1,49 @@
+﻿@model List<BTL_QLTuyenSinh.ViewModels.KetQuaXetTuyenNganhDto>
+
+<div class="table-responsive">
+    <table class="table table-bordered align-middle text-center" id="tblKetQua">
+        <thead class="table-dark">
+            <tr>
+                <th class="text-start">Ngành đào tạo</th>
+                <th>Chỉ tiêu</th>
+                <th>Đã trúng tuyển</th>
+                <th>Điểm chuẩn dự kiến</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model != null && Model.Any())
+            {
+                foreach (var item in Model)
+                {
+                    <tr data-id="@item.NganhHocId" data-diemchuan="@item.DiemChuan">
+                        <td class="text-start">
+                            <strong class="text-dark">@item.TenNganh</strong>
+                            <div class="small text-muted">Mã: @item.MaNganh</div>
+                        </td>
+                        <td>@item.ChiTieu</td>
+                        <td class="fw-bold @(item.SoLuongDaTrungTuyen >= item.ChiTieu ? "text-success" : "text-warning")">
+                            @item.SoLuongDaTrungTuyen / @item.ChiTieu
+                        </td>
+                        <td class="fw-bold text-primary fs-5">
+                            @item.DiemChuan.ToString("0.00")
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="4" class="py-3 text-muted">Không có dữ liệu ngành hoặc không có hồ sơ hợp lệ nào để xét.</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<div class="alert alert-info py-2 small mt-3">
+    💡 <strong>Ghi chú:</strong> Thuật toán đã chạy xong việc lọc ảo và cập nhật trạng thái trúng tuyển cho từng nguyện vọng.
+</div>
+
+<button class="btn btn-success w-100 py-2 fw-bold" onclick="publishResults()">
+    ✓ PHÊ DUYỆT & CÔNG BỐ KẾT QUẢ VÀO CSDL
+</button>

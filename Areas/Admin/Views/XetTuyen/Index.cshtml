@@ -1,0 +1,140 @@
+﻿@{
+    ViewData["Title"] = "Xét tuyển tự động";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid py-4">
+    <h3 class="fw-bold text-dark mb-1">THIẾT LẬP TIÊU CHÍ & CHẠY THUẬT TOÁN XÉT TUYỂN TỰ ĐỘNG (FR-12 & FR-13)</h3>
+    <p class="text-muted small mb-4">Cấu hình quy tắc lọc ảo, tự động phân bổ trúng tuyển theo chỉ tiêu và tính điểm chuẩn từng ngành theo CSDL.</p>
+
+    <div class="row g-4">
+        <!-- Cột trái: Cấu hình tiêu chí (FR-12) -->
+        <div class="col-lg-5">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-dark text-white fw-bold">1. CẤU HÌNH THAM SỐ XÉT TUYỂN</div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Năm tuyển sinh:</label>
+                        <input type="text" class="form-control" value="2026" readonly />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Quy tắc lọc ảo & Độ ưu tiên:</label>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="radio" name="phuongThuc" id="pt1" value="DiemTuCaoXuongThap" checked>
+                            <label class="form-check-label small" for="pt1">
+                                <strong>Lọc ảo toàn hệ thống:</strong> Điểm từ cao xuống thấp, không phân biệt thứ tự nguyện vọng.
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="phuongThuc" id="pt2" value="UuTienNV1">
+                            <label class="form-check-label small text-muted" for="pt2">
+                                Ưu tiên thí sinh đặt NV1 trước.
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Quy tắc phụ khi bằng điểm ngưỡng chỉ tiêu:</label>
+                        <select id="tieuChiPhu" class="form-select">
+                            <option value="UuTienMonToan">Ưu tiên thí sinh có điểm môn Toán cao hơn</option>
+                            <option value="ThuTuNguyenVong">Ưu tiên thứ tự nguyện vọng nhỏ hơn (1 &lt; 2 &lt; 3)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="congDiemUT" checked>
+                        <label class="form-check-label small" for="congDiemUT">Tự động cộng điểm ưu tiên KV/ĐT từ bảng HoSoTuyenSinh</label>
+                    </div>
+
+                    <div class="form-check mb-4">
+                        <input class="form-check-input" type="checkbox" id="chiXetHopLe" checked>
+                        <label class="form-check-label small" for="chiXetHopLe">Chỉ xét hồ sơ có trạng thái <strong>"Hợp lệ"</strong></label>
+                    </div>
+
+                    <button id="btnRun" class="btn btn-danger w-100 py-2 fw-bold shadow-sm">
+                        ▶ CHẠY THUẬT TOÁN XÉT TUYỂN
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cột phải: Bảng kết quả dự kiến (FR-13) -->
+        <div class="col-lg-7">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-primary text-white fw-bold">2. BẢNG DỰ KIẾN ĐIỂM CHUẨN & CHỈ TIÊU</div>
+                <div class="card-body" id="ketQuaContainer">
+                    <div class="text-center py-5 text-muted">
+                        <div class="mb-2 fs-1">⚙️</div>
+                        Vui lòng kiểm tra các tiêu chí bên trái và nhấn nút <strong>"CHẠY THUẬT TOÁN XÉT TUYỂN"</strong>.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.getElementById("btnRun").addEventListener("click", function () {
+            const btn = this;
+            btn.disabled = true;
+            btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span> Đang chạy thuật toán lọc ảo...`;
+
+            const payload = {
+                DotTuyenSinhId: 1,
+                PhuongThucLocAo: document.querySelector('input[name="phuongThuc"]:checked').value,
+                TieuChiPhu: document.getElementById("tieuChiPhu").value,
+                TuDongCongDiemUT: document.getElementById("congDiemUT").checked,
+                ChiXetHoSoHopLe: document.getElementById("chiXetHopLe").checked
+            };
+
+            fetch('/Admin/XetTuyen/RunAlgorithm', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+            .then(res => res.text())
+            .then(html => {
+                document.getElementById("ketQuaContainer").innerHTML = html;
+            })
+            .catch(err => alert("Lỗi chạy xét tuyển: " + err))
+            .finally(() => {
+                btn.disabled = false;
+                btn.innerHTML = "▶ CHẠY THUẬT TOÁN XÉT TUYỂN";
+            });
+        });
+
+        function publishResults() {
+            if (!confirm("Bạn có chắc chắn muốn phê duyệt kết quả này? Điểm chuẩn sẽ được cập nhật chính thức vào bảng NganhHoc."))
+                return;
+
+            const table = document.getElementById("tblKetQua");
+            if (!table) return;
+
+            const rows = table.querySelectorAll("tbody tr");
+            const data = [];
+
+            rows.forEach(r => {
+                data.push({
+                    NganhHocId: parseInt(r.getAttribute("data-id")),
+                    DiemChuan: parseFloat(r.getAttribute("data-diemchuan"))
+                });
+            });
+
+            fetch('/Admin/XetTuyen/PublishResult', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            })
+            .then(res => res.json())
+            .then(res => {
+                alert(res.message);
+                if (res.success) {
+                    location.reload();
+                }
+            })
+            .catch(err => alert("Lỗi công bố kết quả: " + err));
+        }
+    </script>
+}

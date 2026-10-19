@@ -1,8 +1,317 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿@model List<BTL_QLTuyenSinh.Models.NganhHoc>
+@{
+    ViewData["Title"] = "Trang chủ - Hệ thống Tuyển sinh Trực tuyến";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    string[] topBorders = new string[] { "#1d61d8", "#1d61d8", "#22a050", "#d97706", "#9333ea", "#0891b2" };
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<style>
+    body {
+        background-color: #f8fafc;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    .hero-banner {
+        background-color: #153e90;
+        border-radius: 12px;
+        color: #ffffff;
+        padding: 44px 48px;
+        margin-bottom: 36px;
+    }
+
+    .hero-title {
+        font-size: 26px;
+        font-weight: 800;
+        letter-spacing: 0.5px;
+        margin-bottom: 12px;
+    }
+
+    .hero-desc {
+        font-size: 14px;
+        color: #cbd5e1;
+        margin-bottom: 28px;
+    }
+
+    .btn-nop-ho-so {
+        background-color: #f59e0b;
+        color: #ffffff;
+        font-weight: 700;
+        font-size: 13.5px;
+        padding: 10px 24px;
+        border-radius: 6px;
+        border: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+
+        .btn-nop-ho-so:hover {
+            background-color: #d97706;
+            color: #ffffff;
+        }
+
+    .btn-tra-cuu {
+        background-color: #ffffff;
+        color: #1e293b;
+        font-weight: 600;
+        font-size: 13.5px;
+        padding: 10px 24px;
+        border-radius: 6px;
+        border: 1px solid #e2e8f0;
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+
+        .btn-tra-cuu:hover {
+            background-color: #f1f5f9;
+            color: #0f172a;
+        }
+
+    .section-title {
+        font-size: 15px;
+        font-weight: 800;
+        color: #0f172a;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        margin-bottom: 18px;
+    }
+
+    .card-nganh {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 20px 22px;
+        position: relative;
+        overflow: hidden;
+        height: 100%;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+        .card-nganh:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
+        }
+
+    .card-nganh-top-border {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+    }
+
+    .card-nganh-title {
+        font-size: 15px;
+        font-weight: 700;
+        color: #0f172a;
+        margin-bottom: 10px;
+    }
+
+    .card-nganh-info {
+        font-size: 13px;
+        color: #475569;
+        margin-bottom: 10px;
+    }
+
+    .card-nganh-sub {
+        font-size: 12px;
+        color: #94a3b8;
+    }
+
+    .card-step {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 20px 22px;
+        position: relative;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        text-decoration: none;
+        color: inherit;
+        transition: border-color 0.2s ease;
+    }
+
+        .card-step:hover {
+            border-color: #3b82f6;
+        }
+
+    .step-title {
+        font-size: 14.5px;
+        font-weight: 800;
+        color: #1e3a8a;
+        margin-bottom: 10px;
+    }
+
+    .step-desc {
+        font-size: 12.5px;
+        color: #64748b;
+        line-height: 1.5;
+        margin-bottom: 24px;
+    }
+
+    .step-circle-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        align-self: flex-end;
+        background-color: #f1f5f9;
+        color: #3b82f6;
+        font-size: 13px;
+        border: none;
+    }
+
+        .step-circle-btn.success {
+            background-color: #ecfdf5;
+            color: #10b981;
+        }
+
+    .home-footer-text {
+        font-size: 12px;
+        color: #94a3b8;
+        text-align: center;
+        margin-top: 50px;
+        margin-bottom: 24px;
+    }
+</style>
+
+<div class="container-fluid px-lg-5 py-4">
+
+    <!-- 1. HERO BANNER -->
+    <div class="hero-banner">
+        <h1 class="hero-title">CHÀO MỪNG ĐẾN VỚI CỔNG TUYỂN SINH TRỰC TUYẾN 2026</h1>
+        <p class="hero-desc">Phương thức xét tuyển học bạ THPT & Điểm thi tốt nghiệp - Nhanh chóng, minh bạch và chính xác.</p>
+        <div class="d-flex flex-wrap gap-3">
+            @if (User.Identity != null && User.Identity.IsAuthenticated)
+            {
+                @if (User.IsInRole("QuanTri") || User.IsInRole("CanBo"))
+                {
+                    <a asp-area="Admin" asp-controller="XetTuyen" asp-action="Index" class="btn-nop-ho-so">
+                        <span>⚡</span> VÀO BÀN XÉT TUYỂN
+                    </a>
+                }
+                else
+                {
+                    <a asp-controller="ThiSinh" asp-action="HoSo" class="btn-nop-ho-so">
+                        <span>►</span> HỒ SƠ CỦA TÔI
+                    </a>
+                }
+            }
+            else
+            {
+                <a asp-controller="Account" asp-action="Register" class="btn-nop-ho-so">
+                    <span>►</span> NỘP HỒ SƠ NGAY
+                </a>
+            }
+            <a asp-controller="Home" asp-action="Index" fragment="danh-sach-nganh" class="btn-tra-cuu">Tra cứu kết quả</a>
+        </div>
+    </div>
+
+    <!-- 2. NGÀNH ĐÀO TẠO & CHỈ TIÊU (LẤY 100% TỪ SQL SERVER) -->
+    <div id="danh-sach-nganh" class="mb-5">
+        <h2 class="section-title">NGÀNH ĐÀO TẠO & CHỈ TIÊU TUYỂN SINH NỔI BẬT</h2>
+        <div class="row g-3">
+            @if (Model != null && Model.Any())
+            {
+                int index = 0;
+                foreach (var item in Model.Take(4))
+                {
+                    string borderColor = topBorders[index % topBorders.Length];
+                    <div class="col-12 col-sm-6 col-lg-3">
+                        <div class="card-nganh">
+                            <div class="card-nganh-top-border" style="background-color: @borderColor;"></div>
+                            <div class="card-nganh-title">@item.TenNganh</div>
+                            <div class="card-nganh-info">
+                                Chỉ tiêu: <strong>@item.ChiTieu</strong> | Điểm sàn: <strong>@item.DiemSan.ToString("0.00")</strong>
+                            </div>
+                            <div class="card-nganh-sub">
+                                @(string.IsNullOrEmpty(item.TenKhoa) ? "Khoa Đào tạo" : item.TenKhoa) - Mã: @item.MaNganh
+                            </div>
+                        </div>
+                    </div>
+                    index++;
+                }
+            }
+            else
+            {
+                <div class="col-12">
+                    <div class="alert alert-warning py-3 text-center mb-0">
+                        Chưa có ngành đào tạo nào mở đăng ký trong cơ sở dữ liệu.
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- 3. QUY TRÌNH NỘP HỒ SƠ (GẮN LINK ĐIỀU HƯỚNG THẬT) -->
+    <div class="mb-4">
+        <h2 class="section-title">QUY TRÌNH NỘP HỒ SƠ XÉT TUYỂN (4 BƯỚC)</h2>
+        <div class="row g-3">
+            <!-- Bước 1 -->
+            <div class="col-12 col-sm-6 col-lg-3">
+                <a asp-controller="Account" asp-action="Register" class="card-step">
+                    <div>
+                        <div class="step-title">1. Tạo tài khoản</div>
+                        <div class="step-desc">Đăng ký bằng số CCCD và xác thực thông tin liên hệ.</div>
+                    </div>
+                    <div class="step-circle-btn">
+                        <span>&rarr;</span>
+                    </div>
+                </a>
+            </div>
+
+            <!-- Bước 2 -->
+            <div class="col-12 col-sm-6 col-lg-3">
+                <a asp-controller="ThiSinh" asp-action="HoSo" class="card-step">
+                    <div>
+                        <div class="step-title">2. Khai báo hồ sơ</div>
+                        <div class="step-desc">Điền thông tin nhân thân, diện ưu tiên và tải minh chứng.</div>
+                    </div>
+                    <div class="step-circle-btn">
+                        <span>&rarr;</span>
+                    </div>
+                </a>
+            </div>
+
+            <!-- Bước 3 -->
+            <div class="col-12 col-sm-6 col-lg-3">
+                <a asp-controller="ThiSinh" asp-action="NguyenVong" class="card-step">
+                    <div>
+                        <div class="step-title">3. Chọn nguyện vọng</div>
+                        <div class="step-desc">Lựa chọn ngành xét tuyển và sắp xếp thứ tự ưu tiên.</div>
+                    </div>
+                    <div class="step-circle-btn">
+                        <span>&rarr;</span>
+                    </div>
+                </a>
+            </div>
+
+            <!-- Bước 4 -->
+            <div class="col-12 col-sm-6 col-lg-3">
+                <a asp-controller="ThiSinh" asp-action="TraCuu" class="card-step">
+                    <div>
+                        <div class="step-title">4. Nhận kết quả</div>
+                        <div class="step-desc">Tra cứu trúng tuyển chính thức và xác nhận nhập học trực tuyến.</div>
+                    </div>
+                    <div class="step-circle-btn success">
+                        <span>&#10003;</span>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. FOOTER -->
+    <div class="home-footer-text">
+        &copy; 2026 Hệ thống Quản lý Tuyển sinh Trực tuyến - BTL Lập trình Web nâng cao (BTL_QLTuyenSinh)
+    </div>
 </div>

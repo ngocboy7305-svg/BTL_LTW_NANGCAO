@@ -10,15 +10,27 @@ namespace BTL_QLTuyenSinh.Data
         {
         }
 
-        public DbSet<NguoiDung> NguoiDung { get; set; }
-        public DbSet<NganhHoc> NganhHoc { get; set; }
-        public DbSet<MonThi> MonThi { get; set; }
-        public DbSet<HoSoTuyenSinh> HoSoTuyenSinh { get; set; }
-        public DbSet<MinhChungHoSo> MinhChungHoSo { get; set; }
-        public DbSet<NguyenVong> NguyenVong { get; set; }
-        public DbSet<DiemThi> DiemThi { get; set; }
-        public DbSet<ThongBao> ThongBao { get; set; }
-        public DbSet<LichSuThaoTac> LichSuThaoTac { get; set; }
+        // ================= CÁC DBSET CHÍNH (SỐ ÍT THEO CODE CỦA NHÓM) =================
+        public DbSet<NguoiDung> NguoiDung { get; set; } = null!;
+        public DbSet<NganhHoc> NganhHoc { get; set; } = null!;
+        public DbSet<MonThi> MonThi { get; set; } = null!;
+        public DbSet<HoSoTuyenSinh> HoSoTuyenSinh { get; set; } = null!;
+        public DbSet<MinhChungHoSo> MinhChungHoSo { get; set; } = null!;
+        public DbSet<NguyenVong> NguyenVong { get; set; } = null!;
+        public DbSet<DiemThi> DiemThi { get; set; } = null!;
+        public DbSet<ThongBao> ThongBao { get; set; } = null!;
+        public DbSet<LichSuThaoTac> LichSuThaoTac { get; set; } = null!;
+
+        // ================= ALIAS SỐ NHIỀU (ĐỂ CHẠY CHỨC NĂNG CỦA BẠN MÀ KHÔNG GÂY LỖI) =================
+        public DbSet<NguoiDung> NguoiDungs => NguoiDung;
+        public DbSet<NganhHoc> NganhHocs => NganhHoc;
+        public DbSet<MonThi> MonThis => MonThi;
+        public DbSet<HoSoTuyenSinh> HoSoTuyenSinhs => HoSoTuyenSinh;
+        public DbSet<MinhChungHoSo> MinhChungHoSos => MinhChungHoSo;
+        public DbSet<NguyenVong> NguyenVongs => NguyenVong;
+        public DbSet<DiemThi> DiemThis => DiemThi;
+        public DbSet<ThongBao> ThongBaos => ThongBao;
+        public DbSet<LichSuThaoTac> LichSuThaoTacs => LichSuThaoTac;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

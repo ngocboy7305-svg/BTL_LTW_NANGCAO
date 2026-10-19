@@ -1,16 +1,35 @@
 ﻿using BTL_QLTuyenSinh.Data;
+using BTL_QLTuyenSinh.Services;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// 1. Cấu hình DbContext kết nối SQL Server
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Add services to the container.
+// 2. Cấu hình Cookie Authentication (Bắt buộc cho FR-01 & FR-08)
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/Account/Login";              // Chuyển hướng khi chưa đăng nhập
+        options.AccessDeniedPath = "/Account/AccessDenied"; // Chuyển hướng khi không đủ quyền (403)
+        options.ExpireTimeSpan = TimeSpan.FromHours(8);      // Phiên đăng nhập tồn tại 8 tiếng
+        options.SlidingExpiration = true;                   // Tự động gia hạn khi có thao tác
+    });
+
+builder.Services.AddAuthorization();
+
+// 3. Đăng ký Service Xét tuyển tự động (Bắt buộc cho FR-12 & FR-13)
+builder.Services.AddScoped<XetTuyenService>();
+
+// 4. Thêm MVC Controllers with Views
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
 
+// 5. Khởi tạo Seed Data ban đầu
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
@@ -25,18 +44,10 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-// Các cấu hình bên dưới giữ nguyên...
+// 6. Cấu hình Pipeline xử lý HTTP request
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    app.UseHsts();
-}
-
-// Configure the HTTP request pipeline.
-if (!app.Environment.IsDevelopment())
-{
-    app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
@@ -45,7 +56,22 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+// THỨ TỰ BẮT BUỘC: Authentication phải đứng TRƯỚC Authorization
+app.UseAuthentication();
 app.UseAuthorization();
+
+// 7. Route cho khu vực Admin (Quản lý người dùng, Xét tuyển)
+app.MapControllerRoute(
+    name: "areas",
+    pattern: "{area:exists}/{controller=Dashboard}/{action=Index}/{id?}");
+
+// 8. Route mặc định (Thí sinh, Trang chủ, Đăng nhập)
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}/{id?}");
+app.MapControllerRoute(
+    name: "areas",
+    pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
 
 app.MapControllerRoute(
     name: "default",

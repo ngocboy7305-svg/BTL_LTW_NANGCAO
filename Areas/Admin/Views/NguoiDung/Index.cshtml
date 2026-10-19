@@ -1,0 +1,146 @@
+﻿@model List<BTL_QLTuyenSinh.Models.NguoiDung>
+@{
+    ViewData["Title"] = "Quản lý Tài khoản & Phân quyền";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    int currentPage = ViewBag.CurrentPage ?? 1;
+    int totalPages = ViewBag.TotalPages ?? 1;
+    string currentRole = ViewBag.SelectedVaiTro ?? "";
+    string keyword = ViewBag.Keyword ?? "";
+}
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h3 class="fw-bold text-dark mb-1">QUẢN LÝ TÀI KHOẢN VÀ PHÂN QUYỀN TRUY CẬP (FR-08)</h3>
+            <p class="text-muted small mb-0">Quản lý quyền hạn (QuanTri, CanBo, ThiSinh) và khóa/mở tài khoản trong hệ thống.</p>
+        </div>
+    </div>
+
+    <!-- Toolbar Tìm kiếm & Lọc -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-5">
+                    <input type="text" name="keyword" value="@keyword" class="form-control" placeholder="Tìm theo Username, Email, Họ tên hoặc Số CCCD..." />
+                </div>
+                <div class="col-md-4">
+                    <select name="vaiTro" class="form-select">
+                        <option value="">-- Tất cả vai trò --</option>
+                        <option value="QuanTri" selected="@(currentRole == "QuanTri")">Quản trị viên (QuanTri)</option>
+                        <option value="CanBo" selected="@(currentRole == "CanBo")">Cán bộ tuyển sinh (CanBo)</option>
+                        <option value="ThiSinh" selected="@(currentRole == "ThiSinh")">Thí sinh (ThiSinh)</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-primary w-100 fw-semibold">Lọc dữ liệu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Bảng danh sách người dùng -->
+    <div class="card shadow-sm border-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 text-center">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Mã ND</th>
+                        <th>Tên đăng nhập</th>
+                        <th class="text-start">Họ và tên</th>
+                        <th>Số CCCD</th>
+                        <th>Email</th>
+                        <th>Vai trò hiện tại</th>
+                        <th>Trạng thái</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var u in Model)
+                        {
+                            <tr>
+                                <td class="fw-bold text-primary">ND-@u.MaNguoiDung.ToString("D3")</td>
+                                <td class="fw-semibold">@u.TenDangNhap</td>
+                                <td class="text-start">@u.HoTen</td>
+                                <td>@(string.IsNullOrEmpty(u.SoCCCD) ? "-" : u.SoCCCD)</td>
+                                <td class="text-muted small">@u.Email</td>
+                                <td>
+                                    <!-- Đổi quyền nhanh -->
+                                    <form asp-action="UpdateRole" method="post" class="d-inline">
+                                        <input type="hidden" name="id" value="@u.MaNguoiDung" />
+                                        <select name="newRole" class="form-select form-select-sm d-inline-block w-auto" onchange="this.form.submit()">
+                                            <option value="QuanTri" selected="@(u.VaiTro == "QuanTri")">QuanTri</option>
+                                            <option value="CanBo" selected="@(u.VaiTro == "CanBo")">CanBo</option>
+                                            <option value="ThiSinh" selected="@(u.VaiTro == "ThiSinh")">ThiSinh</option>
+                                        </select>
+                                    </form>
+                                </td>
+                                <td>
+                                    @if (u.TrangThaiHoatDong)
+                                    {
+                                        <span class="badge bg-success-subtle text-success border border-success px-2 py-1">HOẠT ĐỘNG</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger-subtle text-danger border border-danger px-2 py-1">ĐÃ KHÓA</span>
+                                    }
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm @(u.TrangThaiHoatDong ? "btn-outline-danger" : "btn-outline-success")" onclick="toggleUserStatus(@u.MaNguoiDung)">
+                                        @(u.TrangThaiHoatDong ? "Khóa" : "Mở khóa")
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="8" class="py-4 text-muted">Không tìm thấy tài khoản nào phù hợp.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Phân trang -->
+        @if (totalPages > 1)
+        {
+            <div class="card-footer bg-white d-flex justify-content-between align-items-center py-3">
+                <div class="small text-muted">Trang <strong>@currentPage</strong> / <strong>@totalPages</strong></div>
+                <ul class="pagination pagination-sm mb-0">
+                    @for (int p = 1; p <= totalPages; p++)
+                    {
+                        <li class="page-item @(p == currentPage ? "active" : "")">
+                            <a class="page-link" href="?page=@p&keyword=@keyword&vaiTro=@currentRole">@p</a>
+                        </li>
+                    }
+                </ul>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function toggleUserStatus(id) {
+            if (!confirm("Bạn có chắc chắn muốn thay đổi trạng thái hoạt động của tài khoản này?")) return;
+
+            fetch('/Admin/NguoiDung/ToggleStatus', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `id=${id}`
+            })
+            .then(res => res.json())
+            .then(res => {
+                if (res.success) {
+                    location.reload();
+                } else {
+                    alert(res.message);
+                }
+            })
+            .catch(err => alert("Lỗi kết nối: " + err));
+        }
+    </script>
+}

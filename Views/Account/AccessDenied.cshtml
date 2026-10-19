@@ -1,0 +1,20 @@
+﻿@{
+    ViewData["Title"] = "Từ chối truy cập";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container py-5 text-center">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0 p-4">
+                <h1 class="display-3 text-danger fw-bold">403</h1>
+                <h4 class="fw-bold mb-3">TỪ CHỐI TRUY CẬP</h4>
+                <p class="text-muted mb-4">Bạn không có quyền hạn cần thiết để truy cập vào khu vực chức năng này.</p>
+                <div>
+                    <a asp-controller="Home" asp-action="Index" class="btn btn-primary px-4 me-2">Về trang chủ</a>
+                    <a asp-controller="Account" asp-action="Login" class="btn btn-outline-secondary px-4">Đổi tài khoản</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

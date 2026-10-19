@@ -1,0 +1,86 @@
+﻿@model List<BTL_QLTuyenSinh.Models.NganhHoc>
+@{
+    ViewData["Title"] = "Quản lý Danh mục Ngành học";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    string tuKhoa = ViewBag.TuKhoa ?? "";
+}
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="fw-bold text-dark mb-1">DANH MỤC NGÀNH ĐÀO TẠO</h4>
+            <p class="text-muted small mb-0">Quản lý chỉ tiêu, mã ngành, tổ hợp xét tuyển và mức điểm sàn</p>
+        </div>
+        @if (User.IsInRole("QuanTri"))
+        {
+            <a asp-action="Create" class="btn btn-primary btn-sm px-3 fw-semibold">
+                + Thêm ngành mới
+            </a>
+        }
+    </div>
+
+    <!-- Bộ lọc tìm kiếm nhanh -->
+    <div class="card border-0 shadow-sm p-3 mb-4 rounded-3">
+        <form method="get" asp-action="Index" class="row g-2">
+            <div class="col-md-10">
+                <input type="text" name="tuKhoa" value="@tuKhoa" class="form-control form-control-sm" placeholder="Tìm kiếm theo mã ngành hoặc tên ngành học..." />
+            </div>
+            <div class="col-md-2 d-grid">
+                <button type="submit" class="btn btn-primary btn-sm fw-semibold">Tìm kiếm</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Bảng danh sách ngành -->
+    <div class="card border-0 shadow-sm rounded-3 overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 text-center">
+                <thead class="table-dark text-nowrap" style="background-color: #1e293b;">
+                    <tr>
+                        <th style="width: 120px;">Mã ngành</th>
+                        <th class="text-start">Tên ngành đào tạo</th>
+                        <th class="text-start">Khoa quản lý</th>
+                        <th>Chỉ tiêu</th>
+                        <th>Tổ hợp môn</th>
+                        <th>Điểm sàn</th>
+                        <th>Trạng thái</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="fw-bold text-primary">@item.MaNganh</td>
+                                <td class="text-start fw-semibold text-dark">@item.TenNganh</td>
+                                <td class="text-start text-muted">@(item.TenKhoa ?? "-")</td>
+                                <td class="fw-bold text-dark">@item.ChiTieu</td>
+                                <td>
+                                    <span class="badge bg-light text-primary border">@item.ToHopXetTuyen</span>
+                                </td>
+                                <td class="fw-bold text-success">@item.DiemSan.ToString("0.00")</td>
+                                <td>
+                                    @if (item.DangMoDangKy)
+                                    {
+                                        <span class="badge bg-success-subtle text-success border border-success">Đang mở</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary-subtle text-secondary border">Đã đóng</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="7" class="text-muted py-4">Chưa có dữ liệu ngành đào tạo.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

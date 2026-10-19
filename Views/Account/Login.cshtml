@@ -1,0 +1,61 @@
+﻿@model BTL_QLTuyenSinh.ViewModels.LoginViewModel
+@{
+    ViewData["Title"] = "Đăng nhập hệ thống";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-5 col-lg-4">
+            <div class="card shadow-sm border-0 rounded-3">
+                <div class="card-body p-4 p-md-5">
+                    <div class="text-center mb-4">
+                        <div class="d-inline-flex align-items-center justify-content-center bg-primary text-white rounded-circle mb-3" style="width: 50px; height: 50px;">
+                            <span class="fw-bold fs-4">TS</span>
+                        </div>
+                        <h4 class="fw-bold text-dark mb-1">ĐĂNG NHẬP</h4>
+                        <p class="text-muted small">Cổng Tuyển sinh & Quản trị Tuyển sinh</p>
+                    </div>
+
+                    @if (TempData["SuccessMessage"] != null)
+                    {
+                        <div class="alert alert-success small py-2">@TempData["SuccessMessage"]</div>
+                    }
+
+                    <form asp-action="Login" method="post" asp-route-returnUrl="@ViewData["ReturnUrl"]">
+                        @Html.AntiForgeryToken()
+                        <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="TenDangNhap" class="form-label fw-semibold small"></label>
+                            <input asp-for="TenDangNhap" class="form-control" placeholder="Nhập CCCD hoặc Username" autofocus />
+                            <span asp-validation-for="TenDangNhap" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="MatKhau" class="form-label fw-semibold small"></label>
+                            <input asp-for="MatKhau" class="form-control" placeholder="••••••••" />
+                            <span asp-validation-for="MatKhau" class="text-danger small"></span>
+                        </div>
+
+                        <div class="form-check mb-3">
+                            <input asp-for="GhiNho" class="form-check-input" />
+                            <label asp-for="GhiNho" class="form-check-label small text-muted"></label>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">ĐĂNG NHẬP</button>
+
+                        <div class="text-center mt-4 small text-muted">
+                            Chưa có tài khoản xét tuyển? <br />
+                            <a asp-action="Register" class="text-decoration-none fw-bold text-primary">Đăng ký tài khoản thí sinh ngay</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
