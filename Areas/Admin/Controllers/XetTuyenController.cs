@@ -14,7 +14,7 @@ namespace BTL_QLTuyenSinh.Areas.Admin.Controllers
         private readonly XetTuyenService _xetTuyenService;
         private readonly ApplicationDbContext _context;
 
-        public XetTuyenController(XetTuyenService xetTuyenService, ApplicationDbContext context) // Đã đổi ở đây
+        public XetTuyenController(XetTuyenService xetTuyenService, ApplicationDbContext context)
         {
             _xetTuyenService = xetTuyenService;
             _context = context;
@@ -38,17 +38,53 @@ namespace BTL_QLTuyenSinh.Areas.Admin.Controllers
             if (results == null || !results.Any())
                 return Json(new { success = false, message = "Chưa có kết quả xét tuyển." });
 
-            foreach (var item in results)
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
             {
-                var nganh = await _context.NganhHocs.FindAsync(item.NganhHocId);
-                if (nganh != null)
-                {
-                    nganh.DiemChuan = (decimal)item.DiemChuan; // Cập nhật cột DiemChuan trong bảng NganhHoc
-                }
-            }
+                // 1. Gom tất cả ID các nguyện vọng trúng tuyển
+                var allTrungTuyenIds = results
+                    .Where(r => r.DanhSachMaNguyenVongTrungTuyen != null)
+                    .SelectMany(r => r.DanhSachMaNguyenVongTrungTuyen)
+                    .ToHashSet();
 
-            await _context.SaveChangesAsync();
-            return Json(new { success = true, message = "Đã phê duyệt và công bố bảng điểm chuẩn tuyển sinh!" });
+                // 2. Cập nhật Điểm chuẩn cho bảng Ngành học
+                foreach (var item in results)
+                {
+                    var nganh = await _context.NganhHocs.FindAsync(item.NganhHocId);
+                    if (nganh != null)
+                    {
+                        nganh.DiemChuan = (decimal)item.DiemChuan;
+                    }
+                }
+
+                // 3. Cập nhật Trạng thái trúng tuyển cho bảng Nguyện vọng
+                var danhSachNganhIds = results.Select(r => r.NganhHocId).ToList();
+                var allNguyenVongs = await _context.NguyenVongs
+                    .Where(nv => danhSachNganhIds.Contains(nv.MaNganhId))
+                    .ToListAsync();
+
+                foreach (var nv in allNguyenVongs)
+                {
+                    if (allTrungTuyenIds.Contains(nv.MaNguyenVongId))
+                    {
+                        nv.KetQuaXetTuyen = "Trúng tuyển";
+                    }
+                    else
+                    {
+                        nv.KetQuaXetTuyen = "Không trúng tuyển";
+                    }
+                }
+
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                return Json(new { success = true, message = "Đã phê duyệt và công bố bảng điểm chuẩn cùng danh sách trúng tuyển thành công!" });
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                return Json(new { success = false, message = "Lỗi khi lưu dữ liệu: " + ex.Message });
+            }
         }
     }
 }

@@ -17,5 +17,8 @@
         public int ChiTieu { get; set; }
         public int SoLuongDaTrungTuyen { get; set; }
         public double DiemChuan { get; set; }
+
+        // Bổ sung thuộc tính này để hứng danh sách trúng tuyển khi Publish:
+        public List<int> DanhSachMaNguyenVongTrungTuyen { get; set; } = new List<int>();
     }
 }

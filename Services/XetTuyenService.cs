@@ -21,7 +21,7 @@ namespace BTL_QLTuyenSinh.Services
                 .Where(n => !n.DaXoa && n.DangMoDangKy)
                 .ToListAsync();
 
-            // 2. Lấy danh sách hồ sơ kèm điểm và nguyện vọng (Khớp đúng tên thuộc tính DanhSachDiem)
+            // 2. Lấy danh sách hồ sơ kèm điểm và nguyện vọng
             var queryHoSo = _context.HoSoTuyenSinhs
                 .Include(h => h.DanhSachNguyenVong)
                 .Include(h => h.DanhSachDiem)
@@ -30,7 +30,6 @@ namespace BTL_QLTuyenSinh.Services
 
             if (tieuChi.ChiXetHoSoHopLe)
             {
-                // Khớp đúng cột TrangThaiHoSo trong CSDL
                 queryHoSo = queryHoSo.Where(h => h.TrangThaiHoSo == "Hợp lệ" || h.TrangThaiHoSo == "HỢP LỆ");
             }
 
@@ -43,7 +42,6 @@ namespace BTL_QLTuyenSinh.Services
             {
                 decimal diemUT = tieuChi.TuDongCongDiemUT ? hs.DiemCongUuTien : 0.00m;
 
-                // Map điểm số của từng môn theo MaMon ("TOAN", "LY", "HOA", "ANH", "VAN")
                 var diemMap = hs.DanhSachDiem
                     .Where(d => d.MonThi != null)
                     .ToDictionary(d => d.MonThi.MaMon.Trim().ToUpper(), d => d.DiemSo);
@@ -53,7 +51,6 @@ namespace BTL_QLTuyenSinh.Services
                     decimal tongDiemBaMon = TinhDiemToHop(diemMap, nv.KhoiXetTuyen);
                     decimal tongDiemXetTuyen = tongDiemBaMon + diemUT;
 
-                    // Ghi nhận trực tiếp vào các cột có sẵn trong bảng NguyenVong
                     nv.TongDiemBaMon = tongDiemBaMon;
                     nv.TongDiemXetTuyen = tongDiemXetTuyen;
 
@@ -87,7 +84,6 @@ namespace BTL_QLTuyenSinh.Services
 
                 foreach (var ng in danhSachNganh)
                 {
-                    // Lọc thí sinh đạt điểm sàn của ngành và chưa đỗ nguyện vọng ưu tiên cao hơn
                     var danhSachXepHang = candidateWishes
                         .Where(w => w.MaNganhId == ng.MaNganhId &&
                                     w.TongDiemXetTuyen >= ng.DiemSan &&
@@ -105,7 +101,6 @@ namespace BTL_QLTuyenSinh.Services
                     }
                 }
 
-                // Cập nhật lại danh sách mã hồ sơ đã có ngành trúng tuyển
                 hoSoDaTrungTuyen.Clear();
                 foreach (var list in ketQuaTheoNganh.Values)
                 {
@@ -116,25 +111,13 @@ namespace BTL_QLTuyenSinh.Services
                 }
             }
 
-            // 5. Cập nhật kết quả trúng tuyển vào từng dòng bảng NguyenVong và tính điểm chuẩn
+            // 5. Tổng hợp kết quả trả về giao diện xem trước (chưa cập nhật trực tiếp DB cho đến khi bấm Phê duyệt)
             var result = new List<KetQuaXetTuyenNganhDto>();
 
             foreach (var ng in danhSachNganh)
             {
                 var dsTrungTuyen = ketQuaTheoNganh[ng.MaNganhId];
                 decimal diemChuan = dsTrungTuyen.Any() ? dsTrungTuyen.Last().TongDiemXetTuyen : ng.DiemSan;
-
-                foreach (var wish in candidateWishes.Where(w => w.MaNganhId == ng.MaNganhId))
-                {
-                    if (dsTrungTuyen.Any(x => x.NguyenVongEntity.MaNguyenVongId == wish.NguyenVongEntity.MaNguyenVongId))
-                    {
-                        wish.NguyenVongEntity.KetQuaXetTuyen = "Trúng tuyển";
-                    }
-                    else
-                    {
-                        wish.NguyenVongEntity.KetQuaXetTuyen = "Không trúng tuyển";
-                    }
-                }
 
                 result.Add(new KetQuaXetTuyenNganhDto
                 {
@@ -143,12 +126,11 @@ namespace BTL_QLTuyenSinh.Services
                     TenNganh = ng.TenNganh,
                     ChiTieu = ng.ChiTieu,
                     SoLuongDaTrungTuyen = dsTrungTuyen.Count,
-                    DiemChuan = (double)diemChuan
+                    DiemChuan = (double)diemChuan,
+                    DanhSachMaNguyenVongTrungTuyen = dsTrungTuyen.Select(x => x.NguyenVongEntity.MaNguyenVongId).ToList()
                 });
             }
 
-            // Lưu toàn bộ kết quả điểm và trạng thái trúng tuyển vào SQL Server
-            await _context.SaveChangesAsync();
             return result;
         }
 

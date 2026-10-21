@@ -1,4 +1,8 @@
-﻿using BTL_QLTuyenSinh.Data;
+﻿using System.Security.Cryptography;
+using System.Text;
+using BTL_QLTuyenSinh.Data;
+using BTL_QLTuyenSinh.Models;
+using BTL_QLTuyenSinh.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -72,6 +76,59 @@ namespace BTL_QLTuyenSinh.Areas.Admin.Controllers
             await _context.SaveChangesAsync();
 
             return RedirectToAction(nameof(Index));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create([FromBody] TaoNguoiDungViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
+                return Json(new { success = false, message = string.Join("<br/>", errors) });
+            }
+
+            // 1. Kiểm tra trùng Tên đăng nhập hoặc Email
+            bool exists = await _context.NguoiDungs.AnyAsync(u =>
+                u.TenDangNhap.ToLower() == model.TenDangNhap.Trim().ToLower() ||
+                u.Email.ToLower() == model.Email.Trim().ToLower());
+
+            if (exists)
+            {
+                return Json(new { success = false, message = "Tên đăng nhập hoặc Email đã tồn tại trong hệ thống." });
+            }
+
+            // 2. Mã hóa mật khẩu
+            string hashedPassword = HashPassword(model.MatKhau);
+
+            // 3. Khởi tạo đối tượng NguoiDung
+            var newUser = new NguoiDung
+            {
+                TenDangNhap = model.TenDangNhap.Trim(),
+                HoTen = model.HoTen.Trim(),
+                Email = model.Email.Trim(),
+                SoDienThoai = model.SoDienThoai?.Trim(),
+                MatKhauMaHoa = hashedPassword,
+                VaiTro = model.VaiTro,
+                TrangThaiHoatDong = true,
+                NgayTao = DateTime.Now
+            };
+
+            _context.NguoiDungs.Add(newUser);
+            await _context.SaveChangesAsync();
+
+            return Json(new { success = true, message = "Tạo tài khoản thành công!" });
+        }
+
+        // Hàm băm mật khẩu chuẩn SHA256
+        private static string HashPassword(string password)
+        {
+            using var sha256 = SHA256.Create();
+            var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
+            return Convert.ToBase64String(bytes);
         }
     }
 }

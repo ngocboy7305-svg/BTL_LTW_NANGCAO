@@ -9,11 +9,15 @@
 }
 
 <div class="container-fluid py-4">
+    <!-- Header & Nút thêm tài khoản -->
     <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
             <h3 class="fw-bold text-dark mb-1">QUẢN LÝ TÀI KHOẢN VÀ PHÂN QUYỀN TRUY CẬP (FR-08)</h3>
             <p class="text-muted small mb-0">Quản lý quyền hạn (QuanTri, CanBo, ThiSinh) và khóa/mở tài khoản trong hệ thống.</p>
         </div>
+        <button type="button" class="btn btn-primary fw-semibold shadow-sm" data-bs-toggle="modal" data-bs-target="#modalTaoTaiKhoan">
+            <i class="bi bi-person-plus-fill me-1"></i> Thêm tài khoản cán bộ
+        </button>
     </div>
 
     <!-- Toolbar Tìm kiếm & Lọc -->
@@ -122,8 +126,63 @@
     </div>
 </div>
 
+<!-- Modal Thêm Tài Khoản (FR-08) -->
+<div class="modal fade" id="modalTaoTaiKhoan" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow border-0">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="modalLabel"><i class="bi bi-person-plus-fill me-2"></i>Thêm tài khoản cán bộ</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div id="createAlert" class="alert d-none" role="alert"></div>
+
+                <form id="formTaoTaiKhoan">
+                    @Html.AntiForgeryToken()
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Tên đăng nhập <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="txtTenDangNhap" placeholder="VD: canbotuyensinh01" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Họ và tên <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="txtHoTen" placeholder="VD: Nguyễn Văn A" required />
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Email <span class="text-danger">*</span></label>
+                            <input type="email" class="form-control" id="txtEmail" placeholder="canbo@domain.edu.vn" required />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Số điện thoại</label>
+                            <input type="tel" class="form-control" id="txtSoDienThoai" placeholder="09xxxxxxxx" />
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Mật khẩu ban đầu <span class="text-danger">*</span></label>
+                            <input type="password" class="form-control" id="txtMatKhau" required />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Vai trò <span class="text-danger">*</span></label>
+                            <select class="form-select" id="slVaiTro">
+                                <option value="CanBo" selected>Cán bộ tuyển sinh</option>
+                                <option value="QuanTri">Quản trị viên (Admin)</option>
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer bg-light">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                <button type="button" class="btn btn-primary px-4 fw-semibold" id="btnLuuTaiKhoan">Lưu tài khoản</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <script>
+        // Xử lý Khóa / Mở khóa tài khoản
         function toggleUserStatus(id) {
             if (!confirm("Bạn có chắc chắn muốn thay đổi trạng thái hoạt động của tài khoản này?")) return;
 
@@ -142,5 +201,59 @@
             })
             .catch(err => alert("Lỗi kết nối: " + err));
         }
+
+        // Xử lý Thêm mới tài khoản qua AJAX
+        document.getElementById("btnLuuTaiKhoan").addEventListener("click", async function () {
+            const alertBox = document.getElementById("createAlert");
+            alertBox.className = "alert d-none";
+
+            const token = document.querySelector('#formTaoTaiKhoan input[name="__RequestVerificationToken"]')?.value;
+
+            const payload = {
+                tenDangNhap: document.getElementById("txtTenDangNhap").value,
+                hoTen: document.getElementById("txtHoTen").value,
+                email: document.getElementById("txtEmail").value,
+                soDienThoai: document.getElementById("txtSoDienThoai").value,
+                matKhau: document.getElementById("txtMatKhau").value,
+                vaiTro: document.getElementById("slVaiTro").value
+            };
+
+            if (!payload.tenDangNhap || !payload.hoTen || !payload.email || !payload.matKhau) {
+                alertBox.className = "alert alert-warning";
+                alertBox.innerText = "Vui lòng điền đầy đủ các trường thông tin bắt buộc (*).";
+                alertBox.classList.remove("d-none");
+                return;
+            }
+
+            try {
+                const res = await fetch('/Admin/NguoiDung/Create', {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "RequestVerificationToken": token
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await res.json();
+
+                if (data.success) {
+                    alertBox.className = "alert alert-success";
+                    alertBox.innerText = data.message;
+                    alertBox.classList.remove("d-none");
+                    setTimeout(() => {
+                        location.reload();
+                    }, 800);
+                } else {
+                    alertBox.className = "alert alert-danger";
+                    alertBox.innerHTML = data.message;
+                    alertBox.classList.remove("d-none");
+                }
+            } catch (err) {
+                alertBox.className = "alert alert-danger";
+                alertBox.innerText = "Lỗi kết nối máy chủ: " + err;
+                alertBox.classList.remove("d-none");
+            }
+        });
     </script>
 }
