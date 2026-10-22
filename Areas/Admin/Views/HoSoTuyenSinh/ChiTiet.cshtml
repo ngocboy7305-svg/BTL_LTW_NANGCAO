@@ -1,0 +1,292 @@
+﻿@model BTL_QLTuyenSinh.Models.HoSoTuyenSinh
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Chi tiết và duyệt hồ sơ";
+}
+
+<div class="container py-4" style="max-width: 950px;">
+
+    <h2 class="mb-4">
+        Chi tiết hồ sơ tuyển sinh
+    </h2>
+
+@if (TempData["ThanhCong"] != null)
+{
+        <div class="alert alert-success">
+            @TempData["ThanhCong"]
+        </div>
+}
+
+@if (TempData["Loi"] != null)
+{
+        <div class="alert alert-danger">
+            @TempData["Loi"]
+        </div>
+}
+
+    <div class="card shadow-sm mb-4">
+
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">
+                1. Thông tin hồ sơ
+            </h5>
+        </div>
+
+        <div class="card-body">
+
+            <div class="row">
+
+                <div class="col-md-6">
+
+                    <p>
+                        <strong>Mã hồ sơ:</strong>
+                        @Model.MaHoSo
+                    </p>
+
+                    <p>
+                        <strong>Họ tên thí sinh:</strong>
+                        @Model.ThiSinh?.HoTen
+                    </p>
+
+                    <p>
+                        <strong>CCCD:</strong>
+                        @Model.ThiSinh?.SoCCCD
+                    </p>
+
+                    <p>
+                        <strong>Email:</strong>
+                        @Model.ThiSinh?.Email
+                    </p>
+
+                </div>
+
+                <div class="col-md-6">
+
+                    <p>
+                        <strong>Năm tuyển sinh:</strong>
+                        @Model.NamTuyenSinh
+                    </p>
+
+                    <p>
+                        <strong>Khu vực ưu tiên:</strong>
+                        @Model.KhuVucUuTien
+                    </p>
+
+                    <p>
+                        <strong>Đối tượng ưu tiên:</strong>
+                        @Model.DoiTuongUuTien
+                    </p>
+
+                    <p>
+                        <strong>Ngày nộp:</strong>
+                        @Model.NgayNop.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
+                    </p>
+
+                </div>
+
+            </div>
+
+            <hr />
+
+            <p>
+                <strong>Trạng thái hồ sơ:</strong>
+
+@if (Model.TrangThaiHoSo == "Chờ duyệt")
+{
+                    <span class="badge bg-warning text-dark">
+                        Chờ duyệt
+                    </span>
+}
+else if (Model.TrangThaiHoSo == "Hợp lệ")
+{
+                    <span class="badge bg-success">
+                        Hợp lệ
+                    </span>
+}
+else if (Model.TrangThaiHoSo == "Không hợp lệ")
+{
+                    <span class="badge bg-danger">
+                        Không hợp lệ
+                    </span>
+}
+else
+                {
+                    <span class="badge bg-secondary">
+                        @Model.TrangThaiHoSo
+                    </span>
+                }
+            </p>
+
+            @if (!string.IsNullOrWhiteSpace(Model.GhiChuDuyet))
+            {
+                <div class="alert alert-info">
+                    <strong>Ghi chú duyệt:</strong>
+                    @Model.GhiChuDuyet
+                </div>
+            }
+
+        </div>
+
+    </div>
+
+    <div class="card shadow-sm mb-4">
+
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">
+                2. Danh sách nguyện vọng
+            </h5>
+        </div>
+
+        <div class="card-body">
+
+            <div class="table-responsive">
+
+                <table class="table table-bordered table-hover">
+
+                    <thead class="table-light">
+
+                        <tr>
+                            <th>Thứ tự ưu tiên</th>
+                            <th>Ngành học</th>
+                            <th>Tổ hợp xét tuyển</th>
+                            <th>Kết quả</th>
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        @foreach (var nv in
+                            Model.DanhSachNguyenVong
+                            .OrderBy(n => n.ThuTuNguyenVong))
+                        {
+                            <tr>
+
+                                <td>
+                                    @nv.ThuTuNguyenVong
+                                </td>
+
+                                <td>
+                                    @nv.NganhHoc?.TenNganh
+                                </td>
+
+                                <td>
+                                    @nv.KhoiXetTuyen
+                                </td>
+
+                                <td>
+                                    @nv.KetQuaXetTuyen
+                                </td>
+
+                            </tr>
+                        }
+
+                        @if (!Model.DanhSachNguyenVong.Any())
+                        {
+                            <tr>
+                                <td colspan="4"
+                                    class="text-center text-muted">
+                                    Chưa có nguyện vọng.
+                                </td>
+                            </tr>
+                        }
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="card shadow-sm mb-4">
+
+        <div class="card-header bg-dark text-white">
+            <h5 class="mb-0">
+                3. Xét duyệt hồ sơ
+            </h5>
+        </div>
+
+        <div class="card-body">
+
+            @if (Model.TrangThaiHoSo == "Chờ duyệt")
+            {
+                <form asp-area="Admin"
+                      asp-controller="HoSoTuyenSinh"
+                      asp-action="Duyet" asp-route-id="@Model.MaHoSoId"
+                      method="post">
+
+                    @Html.AntiForgeryToken()
+
+                    <div class="mb-3">
+
+                        <label for="ghiChu"
+                               class="form-label">
+                            Ghi chú của cán bộ
+                        </label>
+
+                        <textarea id="ghiChu"
+                              name="ghiChu"
+                              class="form-control"
+                              rows="4"
+                              maxlength="500"
+                              placeholder="Nhập ghi chú hoặc lý do từ chối hồ sơ"></textarea>
+
+                        <div class="form-text">
+                            Bắt buộc nhập lý do khi từ chối hồ sơ.
+                            Tối đa 500 ký tự.
+                        </div>
+
+                    </div>
+
+                    <div class="d-flex flex-wrap gap-2">
+
+                        <button type="submit"
+                                name="ketQua"
+                                value="Hợp lệ"
+                                class="btn btn-success">
+
+                            Duyệt hợp lệ
+
+                        </button>
+
+                        <button type="submit"
+                                name="ketQua"
+                                value="Không hợp lệ"
+                                class="btn btn-danger">
+
+                            Từ chối hồ sơ
+
+                        </button>
+
+                    </div>
+
+                </form>
+            }
+            else
+            {
+                <div class="alert alert-secondary">
+
+                    Hồ sơ đã được xử lý hoặc đã hủy.
+                    Không thể duyệt lại hồ sơ này.
+
+                </div>
+            }
+
+        </div>
+
+    </div>
+
+    <a asp-area="Admin"
+       asp-controller="HoSoTuyenSinh"
+       asp-action="Index"
+       class="btn btn-secondary">
+
+        Quay về danh sách hồ sơ
+
+    </a>
+
+</div>

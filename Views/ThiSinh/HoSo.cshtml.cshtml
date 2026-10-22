@@ -1,0 +1,273 @@
+﻿@model BTL_QLTuyenSinh.Models.HoSoTuyenSinh
+
+@{
+    ViewData["Title"] = "Hồ sơ của tôi";
+}
+
+<div class="container py-4">
+
+    <h2 class="mb-4">
+        Hồ sơ đăng ký xét tuyển
+    </h2>
+
+    @if (TempData["ThongBao"] != null)
+    {
+        <div class="alert alert-success">
+            @TempData["ThongBao"]
+        </div>
+    }
+
+    @if (Model == null)
+    {
+        <div class="alert alert-warning">
+            Bạn chưa đăng ký hồ sơ tuyển sinh.
+        </div>
+
+        <a asp-controller="ThiSinh"
+           asp-action="DangKy"
+           class="btn btn-primary">
+            Đăng ký hồ sơ
+        </a>
+    }
+    else
+    {
+        <div class="card shadow-sm mb-4">
+
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    1. Thông tin hồ sơ
+                </h5>
+            </div>
+
+            <div class="card-body">
+
+                <div class="row">
+
+                    <div class="col-md-6">
+
+                        <p>
+                            <strong>Mã hồ sơ:</strong>
+                            @Model.MaHoSo
+                        </p>
+
+                        <p>
+                            <strong>Năm tuyển sinh:</strong>
+                            @Model.NamTuyenSinh
+                        </p>
+
+                        <p>
+                            <strong>Khu vực ưu tiên:</strong>
+                            @Model.KhuVucUuTien
+                        </p>
+
+                    </div>
+
+                    <div class="col-md-6">
+
+                        <p>
+                            <strong>Đối tượng ưu tiên:</strong>
+                            @Model.DoiTuongUuTien
+                        </p>
+
+                        <p>
+                            <strong>Ngày nộp:</strong>
+                            @Model.NgayNop.ToString("dd/MM/yyyy HH:mm")
+                        </p>
+
+                        <p>
+                            <strong>Trạng thái:</strong>
+
+                            @if (Model.TrangThaiHoSo == "Chờ duyệt")
+                            {
+                                <span class="badge bg-warning text-dark">
+                                    Chờ duyệt
+                                </span>
+                            }
+                            else if (Model.TrangThaiHoSo == "Hợp lệ")
+                            {
+                                <span class="badge bg-success">
+                                    Hợp lệ
+                                </span>
+                            }
+                            else if (Model.TrangThaiHoSo == "Không hợp lệ")
+                            {
+                                <span class="badge bg-danger">
+                                    Không hợp lệ
+                                </span>
+                            }
+                            else if (Model.TrangThaiHoSo == "Đã hủy"){
+                                <span class="badge bg-secondary">
+                                    Đã hủy
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-info text-dark">
+                                    @Model.TrangThaiHoSo
+                                </span>
+                            }
+                        </p>
+
+                    </div>
+
+                </div>
+
+                @if (!string.IsNullOrWhiteSpace(
+                    Model.GhiChuDuyet))
+                {
+                    <div class="alert alert-info mt-3">
+
+                        <strong>
+                            Ghi chú từ cán bộ:
+                        </strong>
+
+                        <p class="mb-0">
+                            @Model.GhiChuDuyet
+                        </p>
+
+                    </div>
+                }
+
+            </div>
+
+        </div>
+
+        <div class="card shadow-sm mb-4">
+
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    2. Danh sách nguyện vọng
+                </h5>
+            </div>
+
+            <div class="card-body">
+
+                <div class="table-responsive">
+
+                    <table class="table table-bordered table-hover">
+
+                        <thead class="table-light">
+
+                            <tr>
+                                <th>STT</th>
+                                <th>Ngành học</th>
+                                <th>Tổ hợp</th>
+                                <th>Kết quả</th>
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                            @foreach (var nv in
+                                Model.DanhSachNguyenVong
+                                .OrderBy(n => n.ThuTuNguyenVong))
+                            {
+                                <tr>
+
+                                    <td>
+                                        @nv.ThuTuNguyenVong
+                                    </td>
+
+                                    <td>
+                                        @nv.NganhHoc?.TenNganh
+                                    </td>
+
+                                    <td>
+                                        @nv.KhoiXetTuyen
+                                    </td>
+
+                                    <td>
+                                        @nv.KetQuaXetTuyen
+                                    </td>
+
+                                </tr>
+                            }
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="card shadow-sm">
+
+            <div class="card-header bg-light">
+                <h5 class="mb-0">
+                    3. Thao tác hồ sơ
+                </h5>
+            </div>
+
+            <div class="card-body">
+
+                @if (Model.TrangThaiHoSo == "Chờ duyệt")
+                {
+                    <p class="text-muted">
+                        Hồ sơ đang chờ cán bộ xét duyệt.
+                        Bạn có thể sửa hoặc hủy đăng ký.
+                    </p>
+
+                    <div class="d-flex flex-wrap gap-2">
+
+                        <a asp-controller="ThiSinh"
+                           asp-action="Sua"
+                           asp-route-id="@Model.MaHoSoId"
+                           class="btn btn-warning">
+
+                            Sửa hồ sơ
+
+                        </a>
+
+                        <form asp-controller="ThiSinh"
+                              asp-action="Huy"
+                              asp-route-id="@Model.MaHoSoId"
+                              method="post"
+                              onsubmit="return confirm('Bạn có chắc chắn muốn hủy đăng ký hồ sơ này không?');">
+
+                            @Html.AntiForgeryToken()
+
+                            <button type="submit"
+                                    class="btn btn-danger">
+                                Hủy đăng ký
+                            </button>
+
+                        </form>
+
+                    </div>
+                }
+                else if (Model.TrangThaiHoSo == "Đã hủy")
+                {
+                    <div class="alert alert-secondary">
+                        Hồ sơ này đã được hủy.
+                        Bạn có thể đăng ký hồ sơ mới.
+                    </div>
+
+                    <a asp-controller="ThiSinh"
+                       asp-action="DangKy"
+                       class="btn btn-primary">
+
+                        Đăng ký lại
+
+                    </a>
+                }
+                else
+                {
+                    <div class="alert alert-info">
+
+                        Hồ sơ đã được cán bộ xử lý.
+                        Bạn không thể sửa hoặc hủy
+                        hồ sơ này.
+
+                    </div>
+                }
+
+            </div>
+
+        </div>
+    }
+
+</div>

@@ -21,7 +21,12 @@
                     {
                         <div class="alert alert-success small py-2">@TempData["SuccessMessage"]</div>
                     }
-
+                    @if (TempData["ThanhCong"] != null)
+                    {
+                        <div class="alert alert-success">
+                            @TempData["ThanhCong"]
+                        </div>
+                    }
                     <form asp-action="Login" method="post" asp-route-returnUrl="@ViewData["ReturnUrl"]">
                         @Html.AntiForgeryToken()
                         <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
