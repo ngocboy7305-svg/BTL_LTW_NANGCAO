@@ -1,0 +1,223 @@
+﻿@model BTL_QLTuyenSinh.ViewModels.HoSoDangKyViewModel
+@using Microsoft.AspNetCore.Mvc.Rendering
+@using BTL_QLTuyenSinh.Models
+
+@{
+    bool dangSua = Model.MaHoSoId.HasValue;
+
+    ViewData["Title"] = dangSua
+        ? "Sửa hồ sơ xét tuyển"
+        : "Đăng ký hồ sơ và nguyện vọng";
+
+    var danhSachNganh = ViewBag.Nganhs
+        as IEnumerable<NganhHoc>
+        ?? Enumerable.Empty<NganhHoc>();
+}
+
+<div class="container py-4" style="max-width: 950px;">
+
+    <h2 class="mb-3">@ViewData["Title"]</h2>
+
+    <p class="text-muted">
+        Vui lòng nhập thông tin đăng ký xét tuyển.
+        Thí sinh được chọn tối đa 3 nguyện vọng.
+    </p>
+
+    <form asp-controller="ThiSinh"
+          asp-action="@(dangSua ? "Sua" : "DangKy")"
+          method="post"
+          class="card shadow-sm p-4">
+
+        @Html.AntiForgeryToken()
+
+        <input asp-for="MaHoSoId" type="hidden" />
+
+        <div asp-validation-summary="All"
+             class="text-danger mb-3">
+        </div>
+
+        <h5 class="text-primary mb-3">
+            1. Thông tin ưu tiên
+        </h5>
+
+        <div class="row g-3 mb-4">
+
+            <div class="col-md-6">
+
+                <label asp-for="KhuVucUuTien"
+                       class="form-label">
+                    Khu vực ưu tiên
+                </label>
+
+                <select asp-for="KhuVucUuTien"
+                        class="form-select">
+
+                    <option value="KV1">KV1</option>
+                    <option value="KV2-NT">KV2-NT</option>
+                    <option value="KV2">KV2</option>
+                    <option value="KV3">KV3</option>
+
+                </select>
+
+                <span asp-validation-for="KhuVucUuTien"
+                      class="text-danger">
+                </span>
+
+            </div>
+
+            <div class="col-md-6">
+
+                <label asp-for="DoiTuongUuTien"
+                       class="form-label">
+                    Đối tượng ưu tiên
+                </label>
+
+                <select asp-for="DoiTuongUuTien"
+                        class="form-select">
+
+                    <option value="Không">
+                        Không thuộc diện ưu tiên
+                    </option>
+
+                    <option value="ƯT1">
+                        Nhóm ưu tiên 1
+                    </option>
+
+                    <option value="ƯT2">
+                        Nhóm ưu tiên 2
+                    </option>
+
+                </select>
+
+                <span asp-validation-for="DoiTuongUuTien"
+                      class="text-danger">
+                </span>
+
+            </div>
+
+        </div>
+
+        <hr />
+
+        <h5 class="text-primary mb-3">
+            2. Đăng ký nguyện vọng
+        </h5>
+
+        <p class="text-muted">
+            Nguyện vọng 1 là bắt buộc.
+            Nguyện vọng 2 và 3 có thể bỏ trống.
+            Không được chọn trùng ngành.
+        </p>
+
+        @for (int i = 0; i < 3; i++)
+        {<div class="card border mb-3">
+
+                <div class="card-header bg-light">
+                    <strong>
+                        Nguyện vọng @(i + 1)
+                    </strong>
+                </div>
+
+                <div class="card-body">
+
+                    <div class="row g-3">
+
+                        <div class="col-md-7">
+
+                            <label class="form-label">
+                                Chọn ngành học
+                            </label>
+
+                            <select asp-for="NguyenVongs[i].MaNganhId"
+                                    asp-items="@(new SelectList(
+                                        danhSachNganh,
+                                        "MaNganhId",
+                                        "TenNganh"))"
+                                    class="form-select">
+
+                                <option value="">
+                                    -- Chọn ngành học --
+                                </option>
+
+                            </select>
+
+                            <span asp-validation-for="NguyenVongs[i].MaNganhId"
+                                  class="text-danger">
+                            </span>
+
+                        </div>
+
+                        <div class="col-md-5">
+
+                            <label class="form-label">
+                                Tổ hợp xét tuyển
+                            </label>
+
+                            <select asp-for="NguyenVongs[i].KhoiXetTuyen"
+                                    class="form-select">
+
+                                <option value="">
+                                    -- Chọn tổ hợp --
+                                </option>
+
+                                <option value="A00">A00</option>
+                                <option value="A01">A01</option>
+                                <option value="D01">D01</option>
+                                <option value="D07">D07</option>
+                                <option value="C00">C00</option>
+                                <option value="D14">D14</option>
+                                <option value="D15">D15</option>
+
+                            </select>
+
+                            <span asp-validation-for="NguyenVongs[i].KhoiXetTuyen"
+                                  class="text-danger">
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+        }
+
+        <div class="alert alert-info mt-3">
+            <strong>Lưu ý:</strong>
+            Hệ thống sẽ kiểm tra ngành học,
+            tổ hợp xét tuyển và các nguyện vọng
+            trước khi lưu hồ sơ.
+        </div>
+
+        <div class="d-flex flex-wrap gap-2 mt-3">
+
+            <button type="submit"
+                    class="btn btn-primary">
+
+                @if (dangSua)
+                {
+                    <text>Lưu thay đổi</text>
+                }
+                else
+                {
+                    <text>Nộp hồ sơ</text>
+                }
+
+            </button>
+
+            <a asp-controller="ThiSinh"
+               asp-action="HoSo"
+               class="btn btn-secondary">
+                Quay lại
+            </a>
+
+        </div>
+
+    </form>
+
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

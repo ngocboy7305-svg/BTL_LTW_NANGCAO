@@ -20,7 +20,59 @@ namespace BTL_QLTuyenSinh.Controllers
 
         [HttpGet]
         public IActionResult Register() => View();
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Register(RegisterViewModel model)
+        {
+            if (!ModelState.IsValid)
+                return View(model);
 
+            string cccd = model.CCCD.Trim();
+            string email = model.Email.Trim();
+
+            bool tonTai = await _context.NguoiDung
+                .AnyAsync(u =>
+                    u.TenDangNhap == cccd ||
+                    u.SoCCCD == cccd ||
+                    u.Email == email);
+
+            if (tonTai)
+            {
+                ModelState.AddModelError("",
+                    "CCCD hoặc Email đã tồn tại.");
+                return View(model);
+            }
+
+            var thiSinh = new NguoiDung
+            {
+                TenDangNhap = cccd,
+                SoCCCD = cccd,
+                HoTen = model.HoTen.Trim(),
+                Email = email,
+                SoDienThoai = model.SoDienThoai.Trim(),
+                MatKhauMaHoa =
+                    BCrypt.Net.BCrypt.HashPassword(model.MatKhau),
+                VaiTro = "ThiSinh",
+                TrangThaiHoatDong = true,
+                NgayTao = DateTime.UtcNow
+            };
+
+            _context.NguoiDung.Add(thiSinh);
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException)
+            {
+                ModelState.AddModelError("",
+                    "Không thể lưu tài khoản. Hãy kiểm tra lại.");
+                return View(model);
+            }
+
+            TempData["ThanhCong"] = "Đăng ký thành công!";
+            return RedirectToAction("Login");
+        }
         [HttpGet]
         public IActionResult Login(string? returnUrl = null)
         {

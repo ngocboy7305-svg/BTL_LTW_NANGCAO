@@ -1,0 +1,207 @@
+﻿@model IEnumerable<BTL_QLTuyenSinh.Models.HoSoTuyenSinh>
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Duyệt hồ sơ tuyển sinh";
+    string trangThai = ViewBag.TrangThai ?? "";
+}
+
+<div class="container py-4">
+
+    <h2 class="mb-4">
+        Danh sách hồ sơ tuyển sinh – FR-09
+    </h2>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">
+                Bộ lọc hồ sơ
+            </h5>
+        </div>
+
+        <div class="card-body">
+
+            <form asp-area="Admin"
+                  asp-controller="HoSoTuyenSinh"
+                  asp-action="Index"
+                  method="get">
+
+                <div class="row g-3 align-items-end">
+
+                    <div class="col-md-7">
+
+                        <label class="form-label">
+                            Trạng thái hồ sơ
+                        </label>
+
+                        <select name="trangThai"
+                                class="form-select">
+
+                            <option value="">
+                                Tất cả trạng thái
+                            </option>
+
+                            <option value="Chờ duyệt"
+                                    selected="@(trangThai == "Chờ duyệt")">
+                                Chờ duyệt
+                            </option>
+
+                            <option value="Hợp lệ"
+                                    selected="@(trangThai == "Hợp lệ")">
+                                Hợp lệ
+                            </option>
+
+                            <option value="Không hợp lệ"
+                                    selected="@(trangThai == "Không hợp lệ")">
+                                Không hợp lệ
+                            </option>
+
+                            <option value="Đã hủy"
+                                    selected="@(trangThai == "Đã hủy")">
+                                Đã hủy
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                    <div class="col-md-5">
+
+                        <button type="submit"
+                                class="btn btn-primary">
+                            Lọc hồ sơ
+                        </button>
+
+                        <a asp-area="Admin"
+                           asp-controller="HoSoTuyenSinh"
+                           asp-action="Index"
+                           class="btn btn-secondary">
+                            Làm mới
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">
+                Danh sách hồ sơ
+            </h5>
+        </div>
+
+        <div class="card-body">
+
+            <div class="table-responsive">
+<table class="table table-bordered table-hover">
+
+                    <thead class="table-light">
+
+                        <tr>
+                            <th>Mã hồ sơ</th>
+                            <th>Họ tên thí sinh</th>
+                            <th>Ngày nộp</th>
+                            <th>Trạng thái</th>
+                            <th>Thao tác</th>
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        @foreach (var hs in Model)
+                        {
+                            <tr>
+
+                                <td>
+                                    @hs.MaHoSo
+                                </td>
+
+                                <td>
+                                    @hs.ThiSinh?.HoTen
+                                </td>
+
+                                <td>
+                                    @hs.NgayNop.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
+                                </td>
+
+                                <td>
+
+                                    @if (hs.TrangThaiHoSo == "Chờ duyệt")
+                                    {
+                                        <span class="badge bg-warning text-dark">
+                                            Chờ duyệt
+                                        </span>
+                                    }
+                                    else if (hs.TrangThaiHoSo == "Hợp lệ")
+                                    {
+                                        <span class="badge bg-success">
+                                            Hợp lệ
+                                        </span>
+                                    }
+                                    else if (hs.TrangThaiHoSo == "Không hợp lệ")
+                                    {
+                                        <span class="badge bg-danger">
+                                            Không hợp lệ
+                                        </span>
+                                    }
+                                    else if (hs.TrangThaiHoSo == "Đã hủy")
+                                    {
+                                        <span class="badge bg-secondary">
+                                            Đã hủy
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-info text-dark">
+                                            @hs.TrangThaiHoSo
+                                        </span>
+                                    }
+
+                                </td>
+
+                                <td>
+
+                                    <a asp-area="Admin"
+                                       asp-controller="HoSoTuyenSinh"
+                                       asp-action="ChiTiet" asp-route-id="@hs.MaHoSoId"
+                                       class="btn btn-sm btn-primary">
+
+                                        Chi tiết / Duyệt
+
+                                    </a>
+
+                                </td>
+
+                            </tr>
+                        }
+
+                        @if (!Model.Any())
+                        {
+                            <tr>
+                                <td colspan="5"
+                                    class="text-center text-muted">
+
+                                    Không có hồ sơ nào.
+
+                                </td>
+                            </tr>
+                        }
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
