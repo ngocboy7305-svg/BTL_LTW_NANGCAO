@@ -1,0 +1,129 @@
+﻿@{
+    ViewData["Title"] = "Hệ thống Thông báo Tuyển sinh (FR-07)";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var danhSachThiSinh = ViewBag.DanhSachThiSinh as IEnumerable<dynamic>;
+}
+
+<div class="container py-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+        <div>
+            <h4 class="fw-bold text-dark mb-1">HỆ THỐNG THÔNG BÁO TUYỂN SINH (FR-07 - AJAX)</h4>
+            <p class="text-muted small mb-0">Tích hợp XMLHttpRequest, jQuery $.ajax, Skip/Take EF Core và Fetch API</p>
+        </div>
+        <div class="d-flex gap-2">
+            <button type="button" class="btn btn-outline-secondary btn-sm px-3 fw-semibold" onclick="loadThongBaoWithXHR(1)">
+                ↻ Tải lại (XHR)
+            </button>
+            <button type="button" class="btn btn-primary btn-sm px-3 fw-semibold" data-bs-toggle="modal" data-bs-target="#modalCreateThongBao">
+                + Gửi thông báo mới ($.ajax)
+            </button>
+        </div>
+    </div>
+
+    <div id="thongBaoAlertBox" class="alert d-none py-2 small shadow-sm" role="alert"></div>
+
+    <div class="card border-0 shadow-sm p-3 mb-4 rounded-3">
+        <div class="row g-2 align-items-center">
+            <div class="col-md-5">
+                <label class="form-label small fw-semibold text-secondary mb-1">Tìm kiếm thông báo (Fetch API):</label>
+                <input type="text" id="txtSearchThongBao" class="form-control form-control-sm" placeholder="Nhập tiêu đề, nội dung, tên thí sinh, CCCD..." />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold text-secondary mb-1">Trạng thái:</label>
+                <select id="selTrangThaiXem" class="form-select form-select-sm">
+                    <option value="">-- Tất cả thông báo --</option>
+                    <option value="chua_xem">Chưa xem (Mới)</option>
+                    <option value="da_xem">Đã xem</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small fw-semibold text-secondary mb-1">Sắp xếp:</label>
+                <select id="selSortThongBao" class="form-select form-select-sm">
+                    <option value="newest">Mới nhất trước</option>
+                    <option value="unread_first">Ưu tiên Chưa xem</option>
+                    <option value="oldest">Cũ nhất trước</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small fw-semibold text-secondary mb-1">Số dòng/trang:</label>
+                <select id="selPageSizeThongBao" class="form-select form-select-sm">
+                    <option value="5" selected>5 thông báo</option>
+                    <option value="10">10 thông báo</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-3 overflow-hidden">
+        <div class="card-header bg-white py-2 px-3 border-bottom d-flex justify-content-between align-items-center">
+            <span class="fw-bold small text-dark">DANH SÁCH THÔNG BÁO GỬI THÍ SINH</span>
+            <span id="badgeUnreadCount" class="badge bg-danger">Đang tải...</span>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light small text-uppercase text-secondary">
+                    <tr>
+                        <th class="ps-3" style="width: 80px;">Mã TB</th>
+                        <th style="width: 220px;">Người nhận</th>
+                        <th style="width: 250px;">Tiêu đề</th>
+                        <th>Nội dung</th>
+                        <th class="text-center" style="width: 120px;">Trạng thái</th>
+                        <th class="text-center" style="width: 135px;">Thời gian</th>
+                        <th class="text-end pe-3" style="width: 165px;">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody id="thongBaoTableBody">
+                    <tr><td colspan="7" class="text-center py-4 text-muted">Đang tải dữ liệu thông báo bằng XMLHttpRequest...</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="card-footer bg-white border-top py-3 px-3 d-flex flex-wrap justify-content-between align-items-center">
+            <div id="thongBaoPagingInfo" class="small text-muted">Đang tính toán phân trang...</div>
+            <nav><ul id="thongBaoPagination" class="pagination pagination-sm mb-0"></ul></nav>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalCreateThongBao" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <form id="formCreateThongBaoAjax">
+                <div class="modal-header bg-primary text-white">
+                    <h6 class="modal-title fw-bold">GỬI THÔNG BÁO MỚI ($.ajax)</h6>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Người nhận <span class="text-danger">*</span></label>
+                        <select id="inpMaNguoiNhan" class="form-select form-select-sm" required>
+                            <option value="0">📢 Gửi hàng loạt cho TẤT CẢ thí sinh</option>
+                            @if (danhSachThiSinh != null)
+                            {
+                                foreach (var ts in danhSachThiSinh)
+                                {
+                                    <option value="@ts.MaNguoiDung">@ts.HienThi</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Tiêu đề <span class="text-danger">*</span></label>
+                        <input type="text" id="inpTieuDeThongBao" class="form-control form-control-sm" required />
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small fw-semibold">Nội dung <span class="text-danger">*</span></label>
+                        <textarea id="inpNoiDungThongBao" class="form-control form-control-sm" rows="4" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary btn-sm px-4 fw-semibold">Gửi thông báo ($.ajax)</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/thongbao-ajax.js" asp-append-version="true"></script>
+}
