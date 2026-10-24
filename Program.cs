@@ -2,8 +2,10 @@
 using BTL_QLTuyenSinh.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddMemoryCache();
 
 // 1. Cấu hình DbContext kết nối SQL Server
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
