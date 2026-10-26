@@ -1,0 +1,320 @@
+
+@model BTL_QLTuyenSinh.Models.NganhHoc
+
+@{
+    ViewData["Title"] = "Thêm ngành học";
+}
+
+<style>
+    .nganh-create-page {
+        background: #f4f6f9;
+        min-height: 100vh;
+        padding: 32px 20px;
+        color: #212529;
+        font-family: Arial, sans-serif;
+    }
+
+    .nganh-create-container {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    .nganh-create-heading {
+        margin-bottom: 24px;
+    }
+
+    .nganh-create-heading h2 {
+        font-size: 28px;
+        font-weight: 700;
+        margin: 0 0 8px;
+        color: #1f2937;
+    }
+
+    .nganh-create-heading p {
+        margin: 0;
+        color: #6b7280;
+        font-size: 14px;
+    }
+
+    .nganh-create-card {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 28px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+    }
+
+    .nganh-create-card h3 {
+        font-size: 18px;
+        font-weight: 700;
+        margin: 0 0 24px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .nganh-form-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 20px;
+    }
+
+    .nganh-form-group {
+        min-width: 0;
+    }
+
+    .nganh-form-group label {
+        display: block;
+        font-size: 14px;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: #374151;
+    }
+
+    .nganh-form-group input {
+        display: block;
+        width: 100%;
+        box-sizing: border-box;
+        min-height: 42px;
+        padding: 10px 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 7px;
+        background: #fff;
+        color: #111827;
+        font-size: 14px;
+        outline: none;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .nganh-form-group input:focus {
+        border-color: #2563eb;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+    }
+
+    .nganh-form-group input[type="checkbox"] {
+        width: 17px;
+        min-height: 17px;
+        margin: 0;
+        accent-color: #2563eb;
+    }
+
+    .nganh-form-group .text-danger {
+        display: block;
+        margin-top: 5px;
+        font-size: 12px;
+    }
+
+    .nganh-form-full {
+        grid-column: 1 / -1;
+    }
+
+    .nganh-checkbox-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-height: 42px;
+        padding: 10px 12px;
+        border: 1px solid #e5e7eb;
+        border-radius: 7px;
+        background: #f9fafb;
+    }
+
+    .nganh-checkbox-row label {
+        margin: 0;
+        cursor: pointer;
+    }
+
+    .nganh-form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+        margin-top: 28px;
+        padding-top: 20px;
+        border-top: 1px solid #e5e7eb;
+    }
+
+    .nganh-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 42px;
+        padding: 10px 18px;
+        border-radius: 7px;
+        font-size: 14px;
+        font-weight: 600;
+        text-decoration: none;
+        cursor: pointer;
+        box-sizing: border-box;
+    }
+
+    .nganh-btn-primary {
+        border: 1px solid #2563eb;
+        background: #2563eb;
+        color: #fff;
+    }
+
+    .nganh-btn-primary:hover {
+        background: #1d4ed8;
+        color: #fff;
+    }
+
+    .nganh-btn-secondary {
+        border: 1px solid #d1d5db;
+        background: #fff;
+        color: #374151;
+    }
+
+    .nganh-btn-secondary:hover {
+        background: #f3f4f6;
+        color: #111827;
+    }
+
+    @@media (max-width: 640px) {
+        .nganh-create-page {
+            padding: 20px 12px;
+        }
+
+        .nganh-create-card {
+            padding: 20px 16px;
+        }
+
+        .nganh-form-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .nganh-form-full {
+            grid-column: auto;
+        }
+
+        .nganh-form-actions {
+            flex-direction: column-reverse;
+        }
+
+        .nganh-btn {
+            width: 100%;
+        }
+    }
+</style>
+
+<div class="nganh-create-page">
+    <div class="nganh-create-container">
+
+        <div class="nganh-create-heading">
+            <h2>Thêm ngành học</h2>
+            <p>Nhập thông tin ngành học để thêm vào hệ thống tuyển sinh.</p>
+        </div>
+
+        <div class="nganh-create-card">
+            <h3>Thông tin ngành học</h3>
+
+            <form asp-area="Admin"
+                  asp-controller="NganhHoc"
+                  asp-action="Create"
+                  method="post">
+
+                @Html.AntiForgeryToken()
+
+                <div asp-validation-summary="ModelOnly"
+                     class="text-danger mb-3"></div>
+
+                <div class="nganh-form-grid">
+
+                    <div class="nganh-form-group">
+                        <label asp-for="MaNganh">Mã ngành *</label>
+                        <input asp-for="MaNganh"
+                               placeholder="Ví dụ: CNTT"
+                               autocomplete="off" />
+                        <span asp-validation-for="MaNganh"
+                              class="text-danger"></span>
+                    </div>
+
+                    <div class="nganh-form-group">
+                        <label asp-for="TenNganh">Tên ngành *</label>
+                        <input asp-for="TenNganh"
+                               placeholder="Nhập tên ngành học" />
+                        <span asp-validation-for="TenNganh"
+                              class="text-danger"></span>
+                    </div>
+
+                    <div class="nganh-form-group">
+                        <label asp-for="TenKhoa">Tên khoa</label>
+                        <input asp-for="TenKhoa"
+                               placeholder="Nhập tên khoa quản lý" />
+                        <span asp-validation-for="TenKhoa"
+                              class="text-danger"></span>
+                    </div>
+
+                    <div class="nganh-form-group">
+                        <label asp-for="ChiTieu">Chỉ tiêu tuyển sinh</label>
+                        <input asp-for="ChiTieu"
+                               type="number"
+                               min="0"
+                               placeholder="Nhập số lượng chỉ tiêu" />
+                        <span asp-validation-for="ChiTieu"
+                              class="text-danger"></span>
+                    </div>
+
+                    <div class="nganh-form-group nganh-form-full">
+                        <label asp-for="ToHopXetTuyen">Tổ hợp xét tuyển</label>
+                        <input asp-for="ToHopXetTuyen"
+                               placeholder="Ví dụ: A00, A01, D01" />
+                        <span asp-validation-for="ToHopXetTuyen"
+                              class="text-danger"></span>
+                    </div>
+
+                    <div class="nganh-form-group">
+                        <label asp-for="DiemSan">Điểm sàn</label>
+                        <input asp-for="DiemSan"
+                               type="number"
+                               min="0"
+                               max="30"
+                               step="0.01"
+                               placeholder="0 - 30" />
+                        <span asp-validation-for="DiemSan"
+                              class="text-danger"></span>
+                    </div>
+
+                    <div class="nganh-form-group">
+                        <label asp-for="DiemChuan">Điểm chuẩn</label>
+                        <input asp-for="DiemChuan"
+                               type="number"
+                               min="0"
+                               max="30"
+                               step="0.01"
+                               placeholder="0 - 30" />
+                        <span asp-validation-for="DiemChuan"
+                              class="text-danger"></span>
+                    </div>
+
+                    <div class="nganh-form-group nganh-form-full">
+                        <div class="nganh-checkbox-row">
+                            <input asp-for="DangMoDangKy" />
+                            <label asp-for="DangMoDangKy">
+                                Đang mở đăng ký
+                            </label>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="nganh-form-actions">
+                    <a asp-area="Admin"
+                       asp-controller="NganhHoc"
+                       asp-action="Index"
+                       class="nganh-btn nganh-btn-secondary">
+                        Quay lại
+                    </a>
+
+                    <button type="submit"
+                            class="nganh-btn nganh-btn-primary">
+                        Lưu ngành học
+                    </button>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
