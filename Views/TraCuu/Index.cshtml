@@ -1,0 +1,152 @@
+﻿@{
+    ViewData["Title"] = "Theo dõi trạng thái & Tra cứu kết quả (FR-05 & FR-06)";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var danhSachHoSo = ViewBag.DanhSachHoSo as IEnumerable<dynamic>;
+}
+
+<div class="container py-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+        <div>
+            <h4 class="fw-bold text-dark mb-1">THEO DÕI TRẠNG THÁI HỒ SƠ &amp; TRA CỨU KẾT QUẢ (FR-05, FR-06)</h4>
+            <p class="text-muted small mb-0">Tra cứu trực tuyến theo Số CCCD, Mã hồ sơ, Họ tên bằng Fetch API &amp; AJAX</p>
+        </div>
+        <div class="d-flex gap-2">
+            <button type="button" class="btn btn-outline-secondary btn-sm px-3 fw-semibold" onclick="loadTraCuuWithXHR(1)">
+                ↻ Tải lại (XHR)
+            </button>
+            <button type="button" class="btn btn-primary btn-sm px-3 fw-semibold" data-bs-toggle="modal" data-bs-target="#modalCreateGhiChu">
+                + Ghi chú theo dõi ($.ajax)
+            </button>
+        </div>
+    </div>
+
+    <div id="traCuuAlertBox" class="alert d-none py-2 small shadow-sm" role="alert"></div>
+
+    <div class="card border-0 shadow-sm p-3 mb-4 rounded-3">
+        <div class="row g-2 align-items-end">
+            <div class="col-md-5">
+                <label class="form-label small fw-semibold text-secondary mb-1">Từ khóa tra cứu (Fetch API):</label>
+                <input type="text" id="txtSearchTraCuu" class="form-control form-control-sm"
+                       placeholder="Nhập Số CCCD, Mã hồ sơ (VD: HS20260001) hoặc Họ tên..." />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold text-secondary mb-1">Trạng thái duyệt hồ sơ (FR-05):</label>
+                <select id="selTrangThaiHoSo" class="form-select form-select-sm">
+                    <option value="">-- Tất cả trạng thái --</option>
+                    <option value="Hợp lệ">Hợp lệ (Đã duyệt)</option>
+                    <option value="Chờ duyệt">Chờ duyệt</option>
+                    <option value="Không hợp lệ">Không hợp lệ</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small fw-semibold text-secondary mb-1">Kết quả xét tuyển (FR-06):</label>
+                <select id="selKetQuaXetTuyen" class="form-select form-select-sm">
+                    <option value="">-- Tất cả --</option>
+                    <option value="TrungTuyen">Đã trúng tuyển</option>
+                    <option value="ChoXetTuyen">Chờ xét tuyển</option>
+                    <option value="Truot">Không trúng tuyển</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small fw-semibold text-secondary mb-1">Số hồ sơ/trang:</label>
+                <select id="selPageSizeTraCuu" class="form-select form-select-sm">
+                    <option value="5" selected>5 hồ sơ</option>
+                    <option value="10">10 hồ sơ</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-3 overflow-hidden mb-4">
+        <div class="card-header bg-white py-2 px-3 border-bottom">
+            <span class="fw-bold small text-dark">BẢNG THEO DÕI TIẾN ĐỘ &amp; KẾT QUẢ XÉT TUYỂN</span>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light small text-uppercase text-secondary">
+                    <tr>
+                        <th class="ps-3">Mã hồ sơ</th>
+                        <th>Thí sinh &amp; CCCD</th>
+                        <th>Ưu tiên</th>
+                        <th class="text-center">Trạng thái (FR-05)</th>
+                        <th>Ghi chú duyệt</th>
+                        <th>Kết quả (FR-06)</th>
+                        <th class="text-end pe-3">Chi tiết</th>
+                    </tr>
+                </thead>
+                <tbody id="traCuuTableBody">
+                    <tr><td colspan="7" class="text-center py-4 text-muted">Đang tải dữ liệu hồ sơ...</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="card-footer bg-white border-top py-3 px-3 d-flex flex-wrap justify-content-between align-items-center">
+            <div id="traCuuPagingInfo" class="small text-muted">Đang tải phân trang...</div>
+            <nav><ul id="traCuuPagination" class="pagination pagination-sm mb-0"></ul></nav>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-3 overflow-hidden">
+        <div class="card-header bg-white py-2 px-3 border-bottom">
+            <span class="fw-bold small text-dark">NHẬT KÝ THEO DÕI HỒ SƠ (CRUD jQuery $.ajax)</span>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-sm table-hover align-middle mb-0">
+                <thead class="table-light small text-secondary">
+                    <tr>
+                        <th class="ps-3">Loại thao tác</th>
+                        <th>Nội dung chi tiết</th>
+                        <th>Người thực hiện</th>
+                        <th>Thời gian</th>
+                        <th class="text-end pe-3">Xóa</th>
+                    </tr>
+                </thead>
+                <tbody id="lichSuTraCuuBody">
+                    <tr><td colspan="5" class="text-center py-3 text-muted small">Đang tải nhật ký...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalCreateGhiChu" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <form id="formCreateGhiChuAjax">
+                <div class="modal-header bg-primary text-white">
+                    <h6 class="modal-title fw-bold">THÊM GHI CHÚ THEO DÕI ($.ajax)</h6>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Chọn hồ sơ <span class="text-danger">*</span></label>
+                        <select id="inpMaHoSoId" class="form-select form-select-sm" required>
+                            @if (danhSachHoSo != null)
+                            {
+                                foreach (var hs in danhSachHoSo)
+                                {
+                                    <option value="@hs.MaHoSoId">@hs.HienThi</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Loại thao tác</label>
+                        <input type="text" id="inpLoaiThaoTac" class="form-control form-control-sm" value="Theo dõi trạng thái hồ sơ (FR-05)" />
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small fw-semibold">Nội dung ghi chú <span class="text-danger">*</span></label>
+                        <textarea id="inpNoiDungGhiChu" class="form-control form-control-sm" rows="3" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary btn-sm px-4 fw-semibold">Lưu ghi chú ($.ajax)</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/tracuu-ajax.js" asp-append-version="true"></script>
+}
