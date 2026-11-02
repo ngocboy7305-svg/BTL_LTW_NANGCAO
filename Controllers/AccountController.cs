@@ -3,6 +3,7 @@ using BTL_QLTuyenSinh.Models;
 using BTL_QLTuyenSinh.ViewModels;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
@@ -78,8 +79,17 @@ namespace BTL_QLTuyenSinh.Controllers
 
         #region ĐĂNG NHẬP
         [HttpGet]
-        public IActionResult Login(string? returnUrl = null)
+        public async Task<IActionResult> Login(string? returnUrl = null)
         {
+            if (User.Identity != null && User.Identity.IsAuthenticated)
+            {
+                if (User.IsInRole("Admin") || User.IsInRole("QuanTri") || User.IsInRole("CanBo") || User.IsInRole("GiaoVien"))
+                {
+                    return RedirectToAction("Index", "NganhHoc", new { area = "Admin" });
+                }
+                return RedirectToAction("Index", "Home");
+            }
+
             ViewData["ReturnUrl"] = returnUrl;
             return View();
         }
@@ -115,7 +125,7 @@ namespace BTL_QLTuyenSinh.Controllers
                 return View(model);
             }
 
-            // 2. Xác thực mật khẩu: Hỗ trợ Plaintext, SHA-256 (AJAX) và BCrypt
+            // 2. Xác thực mật khẩu
             bool isValid = false;
 
             if (user.MatKhauMaHoa == passInput)
@@ -149,16 +159,18 @@ namespace BTL_QLTuyenSinh.Controllers
                 return View(model);
             }
 
-            // =========================================================================
-            // 3. THỰC HÀNH BUỔI 7: TẠO VÀ QUẢN LÝ SESSION TRÊN SERVER
-            // =========================================================================
+            // 3. Xóa session và sign out phiên cũ
+            HttpContext.Session.Clear();
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+
+            string role = user.VaiTro ?? "ThiSinh";
+
+            // Lưu Session
             HttpContext.Session.SetString("SessionUser", user.TenDangNhap);
-            HttpContext.Session.SetString("SessionRole", user.VaiTro ?? "ThiSinh");
+            HttpContext.Session.SetString("SessionRole", role);
             HttpContext.Session.SetString("LoginTime", DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss"));
 
-            // =========================================================================
-            // 4. THỰC HÀNH BUỔI 7: TẠO PERSISTENT COOKIES QUẢN LÝ TRẠNG THÁI NGƯỜI DÙNG
-            // =========================================================================
+            // 4. Lưu Cookie theo dõi
             int visitCount = 0;
             if (Request.Cookies["VisitCount"] != null)
             {
@@ -168,7 +180,7 @@ namespace BTL_QLTuyenSinh.Controllers
 
             var persistentOptions = new CookieOptions
             {
-                Expires = DateTimeOffset.UtcNow.AddDays(30), // Lưu trên client trong 30 ngày
+                Expires = DateTimeOffset.UtcNow.AddDays(30),
                 HttpOnly = true,
                 Secure = true,
                 SameSite = SameSiteMode.Lax
@@ -176,19 +188,28 @@ namespace BTL_QLTuyenSinh.Controllers
 
             Response.Cookies.Append("VisitCount", visitCount.ToString(), persistentOptions);
             Response.Cookies.Append("LastLoginTime", DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss"), persistentOptions);
-            Response.Cookies.Append("LastUserRole", user.VaiTro ?? "ThiSinh", persistentOptions);
+            Response.Cookies.Append("LastUserRole", role, persistentOptions);
 
-            // =========================================================================
-            // 5. THỰC HÀNH BUỔI 7: SESSION COOKIES VS PERSISTENT COOKIES (XÁC THỰC)
-            // =========================================================================
+            // 5. Tạo Claims xác thực
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, user.MaNguoiDung.ToString()),
                 new Claim(ClaimTypes.Name, user.HoTen ?? user.TenDangNhap),
-                new Claim(ClaimTypes.Role, user.VaiTro ?? "ThiSinh"),
+                new Claim(ClaimTypes.Role, role),
                 new Claim("TenDangNhap", user.TenDangNhap),
                 new Claim("CCCD", user.SoCCCD ?? "")
             };
+
+            if (role.Equals("Admin", StringComparison.OrdinalIgnoreCase) || role.Equals("QuanTri", StringComparison.OrdinalIgnoreCase))
+            {
+                claims.Add(new Claim(ClaimTypes.Role, "Admin"));
+                claims.Add(new Claim(ClaimTypes.Role, "QuanTri"));
+            }
+            else if (role.Equals("CanBo", StringComparison.OrdinalIgnoreCase) || role.Equals("GiaoVien", StringComparison.OrdinalIgnoreCase))
+            {
+                claims.Add(new Claim(ClaimTypes.Role, "CanBo"));
+                claims.Add(new Claim(ClaimTypes.Role, "GiaoVien"));
+            }
 
             var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
 
@@ -197,19 +218,26 @@ namespace BTL_QLTuyenSinh.Controllers
                 new ClaimsPrincipal(identity),
                 new AuthenticationProperties
                 {
-                    // Nếu người dùng chọn "Ghi nhớ" -> Persistent Cookie có hạn 8 tiếng
-                    // Nếu bỏ chọn "Ghi nhớ" -> Session Cookie, trình duyệt đóng là mất phiên đăng nhập
                     IsPersistent = model.GhiNho,
                     ExpiresUtc = model.GhiNho ? DateTimeOffset.UtcNow.AddHours(8) : null
                 });
 
-            // 6. Điều hướng người dùng theo vai trò
+            // 6. Điều hướng
+            bool isAdminOrStaff = role.Equals("Admin", StringComparison.OrdinalIgnoreCase)
+                               || role.Equals("QuanTri", StringComparison.OrdinalIgnoreCase)
+                               || role.Equals("CanBo", StringComparison.OrdinalIgnoreCase)
+                               || role.Equals("GiaoVien", StringComparison.OrdinalIgnoreCase);
+
             if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
             {
+                if (!isAdminOrStaff && returnUrl.StartsWith("/Admin", StringComparison.OrdinalIgnoreCase))
+                {
+                    return RedirectToAction("Index", "Home");
+                }
                 return Redirect(returnUrl);
             }
 
-            if (user.VaiTro == "QuanTri" || user.VaiTro == "CanBo")
+            if (isAdminOrStaff)
             {
                 return RedirectToAction("Index", "NganhHoc", new { area = "Admin" });
             }
@@ -223,12 +251,8 @@ namespace BTL_QLTuyenSinh.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Logout()
         {
-            // 1. Dọn sạch dữ liệu Session lưu trên Server (Buổi 7)
             HttpContext.Session.Clear();
-
-            // 2. Thu hồi Session/Persistent Cookie xác thực
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-
             return RedirectToAction(nameof(Login));
         }
         #endregion
