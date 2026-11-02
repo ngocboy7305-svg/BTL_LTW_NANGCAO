@@ -236,3 +236,7 @@ SET MatKhauMaHoa = '123456',
     TrangThaiHoatDong = 1
 WHERE TenDangNhap IN ('admin', 'canbo_tuyensinh');
 GO
+
+UPDATE NguoiDung 
+SET MatKhauMaHoa = '123456' 
+WHERE TenDangNhap = 'thisinh2026';
